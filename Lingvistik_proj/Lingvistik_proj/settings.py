@@ -25,7 +25,7 @@ SECRET_KEY = 'django-insecure-g)mufu*rp$rnbixv1#+xhgdb9nhkayo$3d)xanb7jyd41ygf)&
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['*']
 
 
 # Application definition
@@ -37,6 +37,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'Lingvistik_app',
 ]
 
 MIDDLEWARE = [
