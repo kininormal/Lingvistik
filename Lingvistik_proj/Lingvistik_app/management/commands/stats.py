@@ -22,90 +22,95 @@ class Command(BaseCommand):
       #add english text from corpus to language_df
       language_df  = update_english_data(language_df, 'english',  nlp_en)
       #add danish text from corpus to language_df
-      update_danish_data(language_df, 'danish') 
+      #update_danish_data(language_df, 'danish') 
          
       self.stdout.write(self.style.SUCCESS('Successfully updated language data - just initial start.'))
 def  update_english_data(df, lang, nlp_lang):
-   #work in gutenberg in fileids
-   nltk.corpus.gutenberg.fileids()
-   # ----------------------------------
-   # Build basis for English language data
-   # ----------------------------------
    source = 'gutenberg'
-   name_of_work = 'austen-emma.txt'
-
-   body_name = 'head'
-   body_category = 'body part'
-
-   # ----------------------------------
-   # Load raw text from NLTK Gutenberg
-   # ----------------------------------
-
-   raw_text = nltk.corpus.gutenberg.raw(name_of_work)
-
-   # ----------------------------------
-   # Process text with spaCy
-   # ----------------------------------
-
-   doc = nlp_lang(raw_text)
-
-   # ----------------------------------
-   # Build rows
-   # ----------------------------------
-   data = []
-
-   # Loop through sentences
-   for sent in doc.sents:
-      # Loop through tokens in sentence
-      for token in sent:
-         # Find lemma "head"
-         if token.lemma_.lower() == body_name:
-            data.append([
-               sent.text,
-               token.text,
-               token.lemma_,
-               body_name,
-               body_category,
-               lang,
-               source,
-               name_of_work
-            ])
+   #work in gutenberg in fileids
+   file_ids = nltk.corpus.gutenberg.fileids()
    
-   # ----------------------------------
-   # Create dataframe
-   # ----------------------------------
-   new_data = pd.DataFrame(
-      data,
-         columns=[
-            'Text',
-            'Found word',
-            'Lemma',
-            'Body name',
-            'Body category',
-            'Language',
-            'Source',
-            'Name of work'
-         ]
-   )
+   for fileindex in range(0, 2):
+      name_of_work = file_ids[fileindex]
+      print(f"Valgt værk: {name_of_work}")
+      # ----------------------------------
+      # Build basis for English language data
+      # ----------------------------------
+
+      body_name = 'head'
+      body_category = 'body part'
+      df = handle_current_vork(df,source, name_of_work, body_name, body_category, lang, nlp_lang)
+   # # ----------------------------------
+   # # Load raw text from NLTK Gutenberg
+   # # ----------------------------------
+
+   # raw_text = nltk.corpus.gutenberg.raw(name_of_work)
+
+   # # ----------------------------------
+   # # Process text with spaCy
+   # # ----------------------------------
+
+   # doc = nlp_lang(raw_text)
+
+   # # ----------------------------------
+   # # Build rows
+   # # ----------------------------------
+   # data = []
+
+   # # Loop through sentences
+   # for sent in doc.sents:
+   #    # Loop through tokens in sentence
+   #    for token in sent:
+   #       # Find lemma "head"
+   #       if token.lemma_.lower() == body_name:
+   #          data.append([
+   #             sent.text,
+   #             token.text,
+   #             token.lemma_,
+   #             body_name,
+   #             body_category,
+   #             lang,
+   #             source,
+   #             name_of_work
+   #          ])
    
-   # ----------------------------------
-   # Append to existing dataframe
-   # ----------------------------------
-   df = pd.concat(
-      [df, new_data],
-      ignore_index=True
-   )
+   # # ----------------------------------
+   # # Create dataframe
+   # # ----------------------------------
+   # new_data = pd.DataFrame(
+   #    data,
+   #       columns=[
+   #          'Text',
+   #          'Found word',
+   #          'Lemma',
+   #          'Body name',
+   #          'Body category',
+   #          'Language',
+   #          'Source',
+   #          'Name of work'
+   #       ]
+   # )
+   
+   # # ----------------------------------
+   # # Append to existing dataframe
+   # # ----------------------------------
+   # df = pd.concat(
+   #    [df, new_data],
+   #    ignore_index=True
+   # )
 
-   # ----------------------------------
-   # Export
-   # ----------------------------------
+   # # ----------------------------------
+   # # Export
+   # # ----------------------------------
 
-   df.to_excel(
-      'lingvistik.xlsx',
-      index=False
-   )
-
-   print('Head of df with attributes:')
+   # df.to_excel(
+   #    'lingvistik.xlsx',
+   #    index=False
+   # )
+   rows, columns = df.shape
+   print('HANDLED rows in df:')
+   print(rows)
+   print('Head of handled:')
    print(df.head())
 
    print("English language data updated!")
@@ -137,15 +142,76 @@ def update_danish_data(df, lang):
 
 
 
-def nlp_handle_text(txt):
-   #lower case
-   text = txt.lower()
-   #remove html
-   text = remove_html_tags(text)
-
-   return text
-
-def remove_html_tags(text):
-   import re
-   pattern = re.compile('<.*?>')
-   return pattern.sub(r'', text) #replace with empty string
+def handle_current_vork(df, source, name_of_work, body_name, body_category, lang, nlp_lang):
+    # ----------------------------------
+      # Load raw text from NLTK Gutenberg
+      # ----------------------------------
+   
+      raw_text = nltk.corpus.gutenberg.raw(name_of_work)
+   
+      # ----------------------------------
+      # Process text with spaCy
+      # ----------------------------------
+   
+      doc = nlp_lang(raw_text)
+   
+      # ----------------------------------
+      # Build rows
+      # ----------------------------------
+      data = []
+   
+      # Loop through sentences
+      for sent in doc.sents:
+         # Loop through tokens in sentence
+         for token in sent:
+            # Find lemma "head"
+            if token.lemma_.lower() == body_name:
+               data.append([
+                  sent.text,
+                  token.text,
+                  token.lemma_,
+                  body_name,
+                  body_category,
+                  lang,
+                  source,
+                  name_of_work
+               ])
+      
+      # ----------------------------------
+      # Create dataframe
+      # ----------------------------------
+      new_data = pd.DataFrame(
+         data,
+            columns=[
+               'Text',
+               'Found word',
+               'Lemma',
+               'Body name',
+               'Body category',
+               'Language',
+               'Source',
+               'Name of work'
+            ]
+      )
+      
+      # ----------------------------------
+      # Append to existing dataframe
+      # ----------------------------------
+      df = pd.concat(
+         [df, new_data],
+         ignore_index=True
+      )
+   
+      # ----------------------------------
+      # Export
+      # ----------------------------------
+   
+      df.to_excel(
+         'lingvistik.xlsx',
+         index=False
+      )
+   
+      print('Head of df with attributes:')
+      print(df.head(80))
+      return df
+   
