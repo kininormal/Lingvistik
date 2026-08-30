@@ -2,72 +2,84 @@
 from django.core.management.base import BaseCommand
 import matplotlib.pyplot as plt
 import nltk
+import spacy
 import pandas as pd
 from huggingface_hub import login
 import datasets
 from datasets import load_dataset
-class Command(BaseCommand):
-    help = 'Update data basis'
 
-    def handle(self, *args, **kwargs):
+
+class Command(BaseCommand):
+
+   help = 'Update data basis'
+
+   def handle(self, *args, **kwargs):
+      # Load English spaCy model
+      nlp_en = spacy.load("en_core_web_sm")
       # You can specify the quality parameter here or get it from args/kwargs
       #create empty language_df
       language_df = pd.DataFrame()
       #add english text from corpus to language_df
-      language_df  = update_english_data(language_df, 'english')
+      language_df  = update_english_data(language_df, 'english',  nlp_en)
       #add danish text from corpus to language_df
       update_danish_data(language_df, 'danish') 
          
       self.stdout.write(self.style.SUCCESS('Successfully updated language data - just initial start.'))
-def  update_english_data(df, lang):
-   
-   #Build basis for english language data
-   
-   #English sets version one
+def  update_english_data(df, lang, nlp_lang):
+   #work in gutenberg in fileids
+   nltk.corpus.gutenberg.fileids()
+   # ----------------------------------
+   # Build basis for English language data
+   # ----------------------------------
    source = 'gutenberg'
    name_of_work = 'austen-emma.txt'
-   #fileids() contain name of works
-   nltk.corpus.gutenberg.fileids()
-  
-   #Test working before building data and functions
-   emma = nltk.corpus.gutenberg.words(name_of_work)
 
-    # Create NLTK Text object
-   emma_txt = nltk.Text(emma)
-   
-   #clean up  emma_txt for nlp use 1) lower case 2) remove any html tags 2) remove url 3) remove string.punctuation '!"#$%&\'()*+,-./:;<=>?@[\\]^_`{|}~' 4) 3) remove abbreviations replace with full ASP and ASAP':'As Soon As Possible',
-   # 'FAQ': 'Frequently Asked Questions', etc 4) Lemmatization (find eg occurrences of both head and heads when seach for body_name = 'head'
-   #ALL CODDE MISSING 
-  
-  
    body_name = 'head'
    body_category = 'body part'
-  
-  
-   # Find all concordances
-   #concordances = emma_txt.concordance_list(body_name)
-   concordances =  emma_txt .concordance_list(body_name)
-   # Build rows for dataframe
+
+   # ----------------------------------
+   # Load raw text from NLTK Gutenberg
+   # ----------------------------------
+
+   raw_text = nltk.corpus.gutenberg.raw(name_of_work)
+
+   # ----------------------------------
+   # Process text with spaCy
+   # ----------------------------------
+
+   doc = nlp_lang(raw_text)
+
+   # ----------------------------------
+   # Build rows
+   # ----------------------------------
    data = []
 
-   for concordance in concordances:
-         text = ' '.join(concordance.left) + ' ' \
-               + concordance.query + ' ' \
-               + ' '.join(concordance.right)
-         data.append([
-            text,
-            body_name,
-            body_category,
-            lang,
-            source,
-            name_of_work
-         ])
-
+   # Loop through sentences
+   for sent in doc.sents:
+      # Loop through tokens in sentence
+      for token in sent:
+         # Find lemma "head"
+         if token.lemma_.lower() == body_name:
+            data.append([
+               sent.text,
+               token.text,
+               token.lemma_,
+               body_name,
+               body_category,
+               lang,
+               source,
+               name_of_work
+            ])
+   
+   # ----------------------------------
    # Create dataframe
+   # ----------------------------------
    new_data = pd.DataFrame(
       data,
          columns=[
             'Text',
+            'Found word',
+            'Lemma',
             'Body name',
             'Body category',
             'Language',
@@ -75,18 +87,28 @@ def  update_english_data(df, lang):
             'Name of work'
          ]
    )
+   
+   # ----------------------------------
+   # Append to existing dataframe
+   # ----------------------------------
+   df = pd.concat(
+      [df, new_data],
+      ignore_index=True
+   )
 
-   # Add new observations to existing dataframe
-   df = pd.concat([df, new_data], ignore_index=True)
-   # chech that i can get a file output, in text so cvs will not work as 
-   df.to_excel('lingv.xlsx')
+   # ----------------------------------
+   # Export
+   # ----------------------------------
+
+   df.to_excel(
+      'lingvistik.xlsx',
+      index=False
+   )
+
    print('Head of df with attributes:')
    print(df.head())
 
    print("English language data updated!")
-   
-   #return the df so I can append eg danish to the dataframe
-
    return df
 def update_danish_data(df, lang):
    #Build basis for danish language data
