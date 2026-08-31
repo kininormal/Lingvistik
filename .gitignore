@@ -1,1 +1,5 @@
+# Ignorer hele det virtuelle miljø
 /Lingvistik_env
+
+# Lav en specifik undtagelse for din mappe inde i venv
+!Lingvistik_env/nltk_data/gutenberg
