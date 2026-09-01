@@ -10,7 +10,7 @@ import datasets
 from datasets import load_dataset
 from nltk.corpus import gutenberg
 from nltk.corpus.reader import PlaintextCorpusReader
-
+import re
 
 class Command(BaseCommand):
 
@@ -36,50 +36,88 @@ class Command(BaseCommand):
          #update_danish_data(language_df, body_name, body_category, 'danish') 
          
          
-      print('Language df after updates - more languages full update ONLY ENGLISH SO FAR:')
+      print('Language df after updates -  ONLY ENGLISH ONLY two words  SO FAR:')
       rows, columns = language_df.shape
       print(f"Rows in main function:  {rows}")
-      print("First rows")
+      print("First rows in main function:")
       print( language_df.head())
-      print("Last rows")
+      print("Last rows in main function:")
       print( language_df.tail())
          
       self.stdout.write(self.style.SUCCESS('Successfully updated language data - just initial start.'))
 def  update_english_data(df, body_name, body_category, lang, nlp_lang):
-   #BASE_DIR = Path(__file__).resolve().parent
-   
-   # nltk known (allowd) paths
-   for path in nltk.data.path:
-      p = Path(path)
-      print('allowed knowen paht PlaintextCorpusReader promlem ') 
-      print(p, "→", p.exists())
-      print('nlkt paths')
-      print(nltk.data.path)
-   
-   BASE_DIR = Path(__file__).resolve().parents[3]
+  
+   BASE_DIR = Path(__file__).resolve().parents[4] #go to project root to access allowed Lingvistik_env/nltk_data/corpora/gutenberg for PlaintextCorpusReader
+   print(BASE_DIR)
    source = 'gutenberg'
-   GUTENBERG_PATH = BASE_DIR /'data'/'gutenberg'
+   NLTK_PATH_PART= 'Lingvistik_env/nltk_data/corpora/'
+   NLTK_PATH_PART =  NLTK_PATH_PART + source
+   GUTENBERG_PATH = BASE_DIR / NLTK_PATH_PART #allowed path for PlaintextCorpusReader
+   
+   file_ids = nltk.corpus.gutenberg.fileids()
+   print('number of works in gutenberg', len(file_ids))
+   nltk_works = [
+     (gutenberg, fileid)
+     for fileid in gutenberg.fileids()
+   ]
+   
    my_gutenberg = PlaintextCorpusReader(
       str(GUTENBERG_PATH),
       r".*\.txt"
    )
-   print("MY works from gutenberg")
-   print(my_gutenberg.fileids())
-   #work in gutenberg in fileids
-   file_ids = nltk.corpus.gutenberg.fileids()
-   print('number of works in gutenberg', len(file_ids))
-
-   for fileindex in range(0, 2):
-      name_of_work = file_ids[fileindex]
-      print(f"Valgt værk: {name_of_work}")
-      # ----------------------------------
-      # Build basis for English language data
-      # ----------------------------------
-
-      df = handle_current_vork(df,source, name_of_work, body_name, body_category, lang, nlp_lang)
    
+   # my_works = [
+   #  (my_gutenberg, fileid)
+   #  for fileid in my_gutenberg.fileids()
+   # ]
+   
+   #Metadata for initial works nltk_works
+   works = [
+     {
+        "corpus": gutenberg,
+        "fileid": fileid,
+        "source": "NLTK Gutenberg",
+        "language": "English",
+    }
+    for fileid in gutenberg.fileids()
+   ]
+   
+   #add works from my_gutenberg
+   works += [
+    {
+        "corpus": my_gutenberg,
+        "fileid": fileid,
+        "source": "Project Gutenberg",
+        "language": "English",
+    }
+    for fileid in my_gutenberg.fileids()
+]
+   #print("MY works from gutenberg")
+   #print(my_gutenberg.fileids())
+   #work in gutenberg in fileids
+   #all_works = nltk_works + my_works
+   #for corpus, fileid in all_works:
+    #  print(fileid)
+   #loop though works and process each work   
+   for work in works[:2]: #testing with first 2 works
+      corpus = work["corpus"]
+      fileid = work["fileid"]
+
+      text = corpus.raw(fileid)
+
+      source = work["source"]
+      language = work["language"]
+      #check if loop through works is correct before processing
+      print(f"Processing work: {fileid} from source: {source} in language: {language}")
+      print(f"Valgt værk: {fileid}")
+      # ----------------------------------
+      # Build basis for English language data for current work
+      # ----------------------------------
+      df = handle_current_english_work(df,source, fileid, body_name, body_category, lang, nlp_lang)
+   
+   #export to excel
    rows, columns = df.shape
-   print(f"Rows in function for english:  {rows}")
+   print(f"Rows in function for english ALL handled works:  {rows}")
    print("English language data updated!")
    return df
 def update_danish_data(df,  body_name, body_category, lang):
@@ -108,18 +146,18 @@ def update_danish_data(df,  body_name, body_category, lang):
 
 
 
-def handle_current_vork(df, source, name_of_work, body_name, body_category, lang, nlp_lang):
+def handle_current_english_work(df, source, name_of_work, body_name, body_category, lang, nlp_lang):
     # ----------------------------------
       # Load raw text from NLTK Gutenberg
       # ----------------------------------
    
       raw_text = nltk.corpus.gutenberg.raw(name_of_work)
-   
+      text = clean_text(raw_text)
       # ----------------------------------
       # Process text with spaCy
       # ----------------------------------
    
-      doc = nlp_lang(raw_text)
+      doc = nlp_lang(text)
    
       # ----------------------------------
       # Build rows
@@ -180,4 +218,11 @@ def handle_current_vork(df, source, name_of_work, body_name, body_category, lang
       print('Head of df with attributes in function:')
       print(df.head())
       return df
-   
+def clean_text(text):
+    """Rydder linjeskift og overflødige whitespace-tegn."""
+    
+    text = text.replace("\r\n", " ")
+    text = text.replace("\r", " ")
+    text = text.replace("\n", " ")
+    
+    return text
