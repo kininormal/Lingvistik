@@ -1,5 +1,8 @@
-# Ignorer hele det virtuelle miljø
-/Lingvistik_env
+# 1. Ignorer alt i Lingvistik_env mappen
+Lingvistik_env/*
 
-# Lav en specifik undtagelse for din mappe inde i venv
-!Lingvistik_env/nltk_data/gutenberg
+# 2. Gør en undtagelse for selve nltk_data mappen
+!Lingvistik_env/nltk_data/
+
+# 3. Gør en undtagelse for alt inde i nltk_data mappen (samt undermapper)
+!Lingvistik_env/nltk_data/**

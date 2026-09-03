@@ -1,4 +1,6 @@
 #about stats.py:  https://www.geeksforgeeks.org/python/custom-django-management-commands/         #about manage.py stats
+import csv
+
 from django.core.management.base import BaseCommand
 import matplotlib.pyplot as plt
 import nltk
@@ -61,9 +63,21 @@ def  update_english_data(df, body_name, body_category, lang, nlp_lang):
      for fileid in gutenberg.fileids()
    ]
    
+   
+  
+   with open(GUTENBERG_PATH/"Mansfield Park.txt", mode='r', encoding='utf-8', newline='') as file:
+      reader = csv.reader(file, delimiter="å")  # Use a delimiter that is unlikely to appear in the english text (text as one hole text). 
+      print("Does it read the file correctly?")
+      # Læs rækkerne i filen
+      for row in reader:
+         print(row)
+   
+   
+   
    my_gutenberg = PlaintextCorpusReader(
       str(GUTENBERG_PATH),
-      r".*\.txt"
+      r".*\.txt",
+      encoding="utf-8"
    )
    
    # my_works = [
@@ -209,7 +223,6 @@ def handle_current_english_work(df, source, name_of_work, body_name, body_catego
       # ----------------------------------
       # Export
       # ----------------------------------
-   
       df.to_excel(
          'lingvistik.xlsx',
          index=False
@@ -219,10 +232,21 @@ def handle_current_english_work(df, source, name_of_work, body_name, body_catego
       print(df.head())
       return df
 def clean_text(text):
-    """Rydder linjeskift og overflødige whitespace-tegn."""
-    
-    text = text.replace("\r\n", " ")
-    text = text.replace("\r", " ")
-    text = text.replace("\n", " ")
-    
-    return text
+   """Rydder linjeskift og retter almindelige UTF-8/Windows-1252
+    encoding-fejl fra Gutenberg-tekst."""
+
+   # Ret fejlfortolket UTF-8, hvis teksten er blevet læst som cp1252
+   # try:
+   #    text = text.encode("cp1252").decode("utf-8")
+   # except (UnicodeEncodeError, UnicodeDecodeError):
+   #    pass
+
+    # Alle former for linjeskift erstattes med mellemrum
+   text = text.replace("\r\n", " ")
+   text = text.replace("\r", " ")
+   text = text.replace("\n", " ")
+
+    # Flere whitespace-tegn reduceres til ét mellemrum
+   text = re.sub(r"\s+", " ", text)
+
+   return text.strip()
