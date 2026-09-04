@@ -1,8 +1,4 @@
 # 1. Ignorer alt i Lingvistik_env mappen
 Lingvistik_env/*
-
-# 2. Gør en undtagelse for selve nltk_data mappen
-!Lingvistik_env/nltk_data/
-
-# 3. Gør en undtagelse for alt inde i nltk_data mappen (samt undermapper)
-!Lingvistik_env/nltk_data/**
+# 2. Ignorer alt i Lingvistik\corpora\gutenberg mappen
+Lingvistik/corpora/gutenberg/*
