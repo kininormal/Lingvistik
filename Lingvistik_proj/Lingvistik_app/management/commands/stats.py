@@ -63,22 +63,40 @@ def  update_english_data(df, body_name, body_category, lang, nlp_lang):
      for fileid in gutenberg.fileids()
    ]
    
-   
-  
-   with open(GUTENBERG_PATH/"Mansfield Park.txt", mode='r', encoding='utf-8', newline='') as file:
-      reader = csv.reader(file, delimiter="å")  # Use a delimiter that is unlikely to appear in the english text (text as one hole text). 
-      print("Does it read the file correctly?")
-      # Læs rækkerne i filen
-      for row in reader:
-         print(row)
-   
-   
-   
+
    my_gutenberg = PlaintextCorpusReader(
       str(GUTENBERG_PATH),
       r".*\.txt",
       encoding="utf-8"
    )
+   
+   #WORKING TESTS - to identify problems with the text files in the my_gutenberg corpus
+   # #Test 2 two identify charater problems in the text - it seems to be a problem with the encoding of the text file. The text file is encoded in UTF-8, but it contains some characters that are not valid UTF-8 characters. This can happen if the text file was created on a different platform or with a different encoding. To fix this, you can try to read the file with a different encoding, such as 'latin-1' or 'cp1252', which are more permissive and can handle a wider range of characters. You can also try to clean the text by removing or replacing invalid characters before processing it.
+   # file_path = GUTENBERG_PATH / "Mansfield Park.txt"
+
+   # # Test 2.1 – almindelig Python
+   # with open(file_path, "r", encoding="utf-8") as file:
+   #        text_python = file.read()
+
+   # print("PYTHON:")
+   # print(text_python[2500:5000])
+   
+   # cleaned_text_python = clean_text(text_python)
+   # print("PYTHON cleaned:")
+   # print(cleaned_text_python[2500:5000])
+
+
+   # # Test 2.2 – NLTK CorpusReader
+   # text_nltk = my_gutenberg.raw("Mansfield Park.txt")
+
+   # cleaned_text_nltk = clean_text(text_nltk)
+
+   # print("\nNLTK:")
+   # print(cleaned_text_nltk[2500:5000])
+   # print("PYTHON with repr - gives hitten:")
+   # print(repr(cleaned_text_python[2500:5000]))
+   # print("\nNLTK with repr - gives hitten:")
+   # print(repr(cleaned_text_nltk[2500:5000]))
    
    # my_works = [
    #  (my_gutenberg, fileid)
@@ -113,7 +131,7 @@ def  update_english_data(df, body_name, body_category, lang, nlp_lang):
    #for corpus, fileid in all_works:
     #  print(fileid)
    #loop though works and process each work   
-   for work in works[:2]: #testing with first 2 works
+   for work in works[:1]: #testing with first 1 works
       corpus = work["corpus"]
       fileid = work["fileid"]
 
@@ -127,7 +145,7 @@ def  update_english_data(df, body_name, body_category, lang, nlp_lang):
       # ----------------------------------
       # Build basis for English language data for current work
       # ----------------------------------
-      df = handle_current_english_work(df,source, fileid, body_name, body_category, lang, nlp_lang)
+      df = handle_current_english_work(df,my_gutenberg, source, fileid, body_name, body_category, lang, nlp_lang)
    
    #export to excel
    rows, columns = df.shape
@@ -159,14 +177,24 @@ def update_danish_data(df,  body_name, body_category, lang):
    print("Danish language data updated! - no implementation yet  testing it seems to work danis not handled")
 
 
-
-def handle_current_english_work(df, source, name_of_work, body_name, body_category, lang, nlp_lang):
+#only works for my_gutenberg corpus - not for nltk gutenberg corpus
+def handle_current_english_work(df, my_gutenberg, source, name_of_work, body_name, body_category, lang, nlp_lang):
     # ----------------------------------
       # Load raw text from NLTK Gutenberg
       # ----------------------------------
    
-      raw_text = nltk.corpus.gutenberg.raw(name_of_work)
+      raw_text =  my_gutenberg.raw(name_of_work)
       text = clean_text(raw_text)
+      #Test if text is cleaned correctly
+      print(f"Text from {name_of_work} after cleaning IN HANDLER:")
+      print(text[2500:5000])
+      
+      
+     
+
+   
+      
+      
       # ----------------------------------
       # Process text with spaCy
       # ----------------------------------
@@ -231,6 +259,13 @@ def handle_current_english_work(df, source, name_of_work, body_name, body_catego
       print('Head of df with attributes in function:')
       print(df.head())
       return df
+def normalize_text(text):
+    """Gør forskellige linjeskift ens."""
+
+    text = text.replace("\r\n", "\n")
+    text = text.replace("\r", "\n")
+
+    return text
 def clean_text(text):
    """Rydder linjeskift og retter almindelige UTF-8/Windows-1252
     encoding-fejl fra Gutenberg-tekst."""
@@ -240,13 +275,11 @@ def clean_text(text):
    #    text = text.encode("cp1252").decode("utf-8")
    # except (UnicodeEncodeError, UnicodeDecodeError):
    #    pass
-
+   text = normalize_text(text)
     # Alle former for linjeskift erstattes med mellemrum
-   text = text.replace("\r\n", " ")
-   text = text.replace("\r", " ")
    text = text.replace("\n", " ")
 
     # Flere whitespace-tegn reduceres til ét mellemrum
    text = re.sub(r"\s+", " ", text)
-
+  
    return text.strip()
