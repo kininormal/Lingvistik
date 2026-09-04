@@ -4,12 +4,14 @@ import csv
 from django.core.management.base import BaseCommand
 import matplotlib.pyplot as plt
 import nltk
+from schemdraw import config
 import spacy
 from pathlib import Path
 import pandas as pd
 from huggingface_hub import login
 import datasets
-from datasets import load_dataset
+from datasets import load_dataset, get_dataset_config_names, concatenate_datasets
+
 from nltk.corpus import gutenberg
 from nltk.corpus.reader import PlaintextCorpusReader
 import re
@@ -26,7 +28,10 @@ class Command(BaseCommand):
       #create empty language_df
       language_df = pd.DataFrame()
       #list_of_names  = [ ['head', 'body part'], ['foot', 'body part' ], ['heart', 'organ']] #tested works
-      list_of_names  = [ ['head', 'body part'], ['foot', 'body part' ], ['heart', 'organ'], ['eye', 'body part'], ['ear', 'body part'], ['nose', 'body part'], ['mouth', 'body part'], ['hand', 'body part'], ['arm', 'body part'], ['leg', 'body part'], ['brain', 'organ'], ['liver', 'organ'], ['kidney', 'organ'], ['stomach', 'organ'], ['lung', 'organ']]
+      list_of_names  = [ ['head', 'body part'], ['foot', 'body part' ], ['heart', 'organ'], ['eye', 'body part'], 
+                        ['ear', 'body part'], ['nose', 'body part'], ['mouth', 'body part'], ['hand', 'body part'], ['arm', 'body part'], 
+                        ['leg', 'body part'], ['brain', 'organ'], ['liver', 'organ'], ['kidney', 'organ'], ['gut', 'organ'],
+                        ['stomach', 'organ'], ['lung', 'organ']]
       for part in list_of_names[:2]: #test with only two works for now -with two body names head and foot
          body_name = part[0]
          body_category = part[1]
@@ -35,7 +40,7 @@ class Command(BaseCommand):
          #add english text from corpus to language_df
          language_df  = update_english_data(language_df, body_name, body_category, 'english',  nlp_en)
          #add danish text from corpus to language_df
-         #update_danish_data(language_df, body_name, body_category, 'danish') 
+         update_danish_data(language_df, body_name, body_category, 'danish') 
          
          
       print('Language df after updates -  ONLY ENGLISH ONLY two works SO FAR:')
@@ -106,12 +111,28 @@ def  update_english_data(df, body_name, body_category, lang, nlp_lang):
    print("English language data updated!")
    return df
 def update_danish_data(df,  body_name, body_category, lang):
+   print("Starting to update Danish language data...")
+   dataset_name = "danish-foundation-models/danish-gigaword"
+   configs = get_dataset_config_names(dataset_name)
+
+   # 2. Loop igennem og hent "train"-splittet for hver kilde
+   all_data = {}
+   for config in configs:
+      # Vi springer 'default' over, hvis du vil hente de specifikke kilder rent
+      if config == "default":
+         continue
+      all_data[config] = load_dataset(dataset_name, name=config, split="train")
+      
+   print(f"Fetched {len(all_data)} subsets from the Danish Gigaword dataset.")
+   # Samler alle de hentede subsets til ét stort datasæt
+   full_danish_gigaword = concatenate_datasets(list(all_data.values()))
+   print(f"Total number of samples in full Danish Gigaword dataset: {len(full_danish_gigaword)}")
+   
    #Build basis for danish language data
    # Implement the logic to update Danish language data here
    #Danish sets
    sampleLst = []
-   name = "danish-foundation-models/danish-gigaword"
-   danish_set = load_dataset(name, split = "train")
+   danish_set = load_dataset(dataset_name, split = "train")
    sample = danish_set[1] # see "Data Instances" below
    print('danish set index 1 keys', sample.keys())
    print('danish text index 1', sample["text"][:500])
