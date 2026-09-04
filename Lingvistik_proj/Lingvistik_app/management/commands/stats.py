@@ -26,18 +26,19 @@ class Command(BaseCommand):
       #create empty language_df
       language_df = pd.DataFrame()
       #list_of_names  = [ ['head', 'body part'], ['foot', 'body part' ], ['heart', 'organ']] #tested works
-      list_of_names  = [ ['head', 'body part']]
-      for part in list_of_names:
+      list_of_names  = [ ['head', 'body part'], ['foot', 'body part' ], ['heart', 'organ'], ['eye', 'body part'], ['ear', 'body part'], ['nose', 'body part'], ['mouth', 'body part'], ['hand', 'body part'], ['arm', 'body part'], ['leg', 'body part'], ['brain', 'organ'], ['liver', 'organ'], ['kidney', 'organ'], ['stomach', 'organ'], ['lung', 'organ']]
+      for part in list_of_names[:2]: #test with only two works for now -with two body names head and foot
          body_name = part[0]
          body_category = part[1]
-      
+         #for every body_name and body_category create a new language_df with english and danish data
+         language_df = None
          #add english text from corpus to language_df
          language_df  = update_english_data(language_df, body_name, body_category, 'english',  nlp_en)
          #add danish text from corpus to language_df
          #update_danish_data(language_df, body_name, body_category, 'danish') 
          
          
-      print('Language df after updates -  ONLY ENGLISH ONLY two words  SO FAR:')
+      print('Language df after updates -  ONLY ENGLISH ONLY two works SO FAR:')
       rows, columns = language_df.shape
       print(f"Rows in main function:  {rows}")
       print("First rows in main function:")
@@ -49,11 +50,10 @@ class Command(BaseCommand):
 def  update_english_data(df, body_name, body_category, lang, nlp_lang):
   
    BASE_DIR = Path(__file__).resolve().parents[4] #go to project root to access allowed Lingvistik_env/nltk_data/corpora/gutenberg for PlaintextCorpusReader
-   
    map_name_for_sources = 'corpora/gutenberg/'
-   #Allowe the path for PlaintextCorpusReader
    MY_CORPUS_PATH = BASE_DIR / map_name_for_sources
-   nltk.data.path.append(str(MY_CORPUS_PATH)) #DO NOT USE allowed NLTK_PATH in virtual environment - Works from NLTK are then "lost" and not found by PlaintextCorpusReader - only works for nltk.corpus.gutenberg
+   #Allowe the path for PlaintextCorpusReader
+   nltk.data.path.append(str(MY_CORPUS_PATH)) #DO NOT USE allowed NLTK_PATH in allowed virtual environment map - Works from NLTK are then "lost" and not found by PlaintextCorpusReader - only works for nltk.corpus.gutenberg
    
    gutenberg = nltk.corpus.gutenberg   
    
@@ -62,7 +62,6 @@ def  update_english_data(df, body_name, body_category, lang, nlp_lang):
       r".*\.txt",
       encoding="utf-8"
    )
-   
    
    #Metadata for initial works nltk_works
    works = [
@@ -87,7 +86,7 @@ def  update_english_data(df, body_name, body_category, lang, nlp_lang):
    ]
   
    #loop though works and process each work   
-   for work in works[:2]: #testing with first 2 works
+   for work in works: #can be limited to n works with works[:n]
       corpus = work["corpus"]
       fileid = work["fileid"]
 
@@ -133,9 +132,8 @@ def update_danish_data(df,  body_name, body_category, lang):
 
 def handle_current_english_work(df, my_gutenberg, source, name_of_work, body_name, body_category, lang, nlp_lang):
   
-   # Check source Then handle  Clean text according to Gutenberg corpus (NLKT often adds \r to \n, and my_gutenberg may have different formatting)  
-   if source == "NLTK Gutenberg":   
-           
+   # Check source Then handle  Clean text according to Gutenberg corpus (NLKT often has \r\n, where my_gutenberg only has may have \n)  
+   if source == "NLTK Gutenberg":       
       raw_text = nltk.corpus.gutenberg.raw(name_of_work)          
       text = clean_text(raw_text)
    elif source == "Project Gutenberg":          
@@ -153,7 +151,7 @@ def handle_current_english_work(df, my_gutenberg, source, name_of_work, body_nam
    # ----------------------------------
    # Process text with spaCy
    # ----------------------------------
-
+   nlp_lang.max_length = max(nlp_lang.max_length, len(text) + 1)
    doc = nlp_lang(text)
 
    # ----------------------------------
@@ -202,12 +200,12 @@ def handle_current_english_work(df, my_gutenberg, source, name_of_work, body_nam
       [df, new_data],
       ignore_index=True
    )
-
+  
    # ----------------------------------
    # Export
    # ----------------------------------
    df.to_excel(
-      'lingvistik.xlsx',
+      body_name + '_lingvistik.xlsx',
       index=False
    )
 
