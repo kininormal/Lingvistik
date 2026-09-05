@@ -1,4 +1,4 @@
-#about stats.py:  https://www.geeksforgeeks.org/python/custom-django-management-commands/         #about manage.py stats
+#about stats.py: dir       #about manage.py stats
 import csv
 
 from django.core.management.base import BaseCommand
@@ -12,9 +12,9 @@ from huggingface_hub import login
 import datasets
 from datasets import load_dataset, get_dataset_config_names, concatenate_datasets
 
-from nltk.corpus import gutenberg
-from nltk.corpus.reader import PlaintextCorpusReader
-import re
+from .statsservices.handle_useing_spacy import use_spacy_for_text_processing
+from .statsservices.handle_corpus_building import handle_gutenberg_corpora_build
+from .statsservices.texthandling import clean_text
 
 class Command(BaseCommand):
 
@@ -27,20 +27,51 @@ class Command(BaseCommand):
       # You can specify the quality parameter here or get it from args/kwargs
       #create empty language_df
       language_df = pd.DataFrame()
-      #list_of_names  = [ ['head', 'body part'], ['foot', 'body part' ], ['heart', 'organ']] #tested works
-      list_of_names  = [ ['head', 'body part'], ['foot', 'body part' ], ['heart', 'organ'], ['eye', 'body part'], 
+      
+          
+      ################# Template for next version - not used yet - but could be used to create a more structured approach to the lexicon and translations
+      #       from dataclasses import dataclass, field
+
+      # @dataclass
+      # class TermConcept:
+      #     category: str
+      #     translations: dict[str, str]  # fx {'en': 'head', 'da': 'hoved', 'de': 'kopf'}
+
+      # # Samling af alle koncepter
+      # lexicon = [
+      #     TermConcept(category='body part', translations={'en': 'head', 'da': 'hoved', 'de': 'kopf'}),
+      #     TermConcept(category='body part', translations={'en': 'foot', 'da': 'fod', 'de': 'fuß'}),
+      #     TermConcept(category='sensory',   translations={'en': 'smell', 'da': 'lugt', 'de': 'geruch'}),
+      #     TermConcept(category='organ',     translations={'en': 'heart', 'da': 'hjerte', 'de': 'herz'}),
+      # ]
+
+      # def get_terms_for_language(lexicon, lang='en'):
+      #     """Uddrager ordbog til et specifikt sprog: {lokalt_ord: kategori}"""
+      #     return {
+      #         concept.translations[lang]: concept.category 
+      #         for concept in lexicon 
+      #         if lang in concept.translations
+      #     }
+
+      # # Generer automatisk listen til dansk NLP-kørsel
+      # da_terms = get_terms_for_language(lexicon, 'da')
+      # # Resultat: {'hoved': 'body part', 'fod': 'body part', 'lugt': 'sensory', 'hjerte': 'organ'}
+      ##########
+      
+      list_of_names  = [ ['head', 'body part'], ['foot', 'body part' ], ['smell', 'sensory'], ['heart', 'organ'], ['eye', 'body part'], 
                         ['ear', 'body part'], ['nose', 'body part'], ['mouth', 'body part'], ['hand', 'body part'], ['arm', 'body part'], 
                         ['leg', 'body part'], ['brain', 'organ'], ['liver', 'organ'], ['kidney', 'organ'], ['gut', 'organ'],
                         ['stomach', 'organ'], ['lung', 'organ']]
-      for part in list_of_names[:2]: #test with only two works for now -with two body names head and foot
-         body_name = part[0]
+      for part in list_of_names[:1]: #test with only two works for now -with two body names head and foot
+         designation = part[0]
          body_category = part[1]
-         #for every body_name and body_category create a new language_df with english and danish data
+         #for every designation and body_category create a new language_df with english and danish data
          language_df = None
          #add english text from corpus to language_df
-         language_df  = update_english_data(language_df, body_name, body_category, 'english',  nlp_en)
+         language_df  = update_english_data(language_df, designation, body_category, 'English',  nlp_en)
          #add danish text from corpus to language_df
-         update_danish_data(language_df, body_name, body_category, 'danish') 
+         # designation are in english - Tenplate for next version - not used yet - but could be used to create a more structured approach to the lexicon and translations
+         #update_danish_data(language_df, designation, body_category, 'danish') focus on engisk soo far
          
          
       print('Language df after updates -  ONLY ENGLISH ONLY two works SO FAR:')
@@ -52,65 +83,33 @@ class Command(BaseCommand):
       print( language_df.tail())
          
       self.stdout.write(self.style.SUCCESS('Successfully updated language data - just initial start.'))
-def  update_english_data(df, body_name, body_category, lang, nlp_lang):
+def  update_english_data(df, designation, body_category, language, nlp_lang): #LOOK at 'clean up' lang is here but then set later in work loop - should be set in function and not in loop - but for now it is set in loop
   
-   BASE_DIR = Path(__file__).resolve().parents[4] #go to project root to access allowed Lingvistik_env/nltk_data/corpora/gutenberg for PlaintextCorpusReader
+   BASE_DIR = Path(__file__).resolve().parents[4] #go to Lingvistik from Lingvistik_proj/Lingvistik_app/management/commands/stats.py, 4 levels to 
    map_name_for_sources = 'corpora/gutenberg/'
    MY_CORPUS_PATH = BASE_DIR / map_name_for_sources
-   #Allowe the path for PlaintextCorpusReader
+   #Allow the path of MY_CORPUS_PATH for PlaintextCorpusReader
    nltk.data.path.append(str(MY_CORPUS_PATH)) #DO NOT USE allowed NLTK_PATH in allowed virtual environment map - Works from NLTK are then "lost" and not found by PlaintextCorpusReader - only works for nltk.corpus.gutenberg
    
-   gutenberg = nltk.corpus.gutenberg   
+   works, my_gutenberg = handle_gutenberg_corpora_build(MY_CORPUS_PATH, language)
    
-   my_gutenberg = PlaintextCorpusReader(
-      str((MY_CORPUS_PATH)),
-      r".*\.txt",
-      encoding="utf-8"
-   )
-   
-   #Metadata for initial works nltk_works
-   works = [
-     {
-        "corpus": gutenberg,
-        "fileid": fileid,
-        "source": "NLTK Gutenberg",
-        "language": "English",
-    }
-    for fileid in gutenberg.fileids()
-   ]
- 
-   #add works from my_gutenberg
-   works += [
-    {
-        "corpus": my_gutenberg,
-        "fileid": fileid,
-        "source": "Project Gutenberg",
-        "language": "English",
-    }
-    for fileid in my_gutenberg.fileids()
-   ]
   
    #loop though works and process each work   
-   for work in works: #can be limited to n works with works[:n]
-      corpus = work["corpus"]
-      fileid = work["fileid"]
-
-      text = corpus.raw(fileid)
-
-      source = work["source"]
-      language = work["language"]
-      
+   for work in works[:1]: #can be limited to n works with works[:n] does it wok outside NTLK 18 works and 12 works from my_gutenberg - total 30 works - can be limited to n works with works[:n] does it wok outside NTLK 18 works and 12 works from my_gutenberg - total 30 works
       # ----------------------------------
       # Build basis for English language data for current work
       # ----------------------------------
-      df = handle_current_english_work(df,my_gutenberg, source, fileid, body_name, body_category, lang, nlp_lang)
+      df = handle_current_english_work(df,my_gutenberg, work, designation, body_category, nlp_lang)
+      #fileid source and language  are knowen in work
+    
+      
    
    #export to excel
    rows, columns = df.shape
    print(f"Rows in function for english ALL handled works:  {rows}")
    print("English language data updated!")
    return df
-def update_danish_data(df,  body_name, body_category, lang):
+def update_danish_data(df,  designation, body_category, lang):
    print("Starting to update Danish language data...")
    dataset_name = "danish-foundation-models/danish-gigaword"
    configs = get_dataset_config_names(dataset_name)
@@ -145,15 +144,20 @@ def update_danish_data(df,  body_name, body_category, lang):
       words = nltk.word_tokenize(sampleMember["text"], language=lang)
       text_obj = nltk.Text(words)
       print(f"--- Sample {memberNr} ---")
-      text_obj.concordance(body_name)
+      text_obj.concordance(designation)
 
 
    print("Danish language data updated! - no implementation yet  testing it seems to work danis not handled")
 
 
-def handle_current_english_work(df, my_gutenberg, source, name_of_work, body_name, body_category, lang, nlp_lang):
-  
-   # Check source Then handle  Clean text according to Gutenberg corpus (NLKT often has \r\n, where my_gutenberg only has may have \n)  
+
+def handle_current_english_work(df, my_gutenberg, work, designation, body_category, nlp_lang):
+   source = work["source"]
+   lang = work["language"]
+   name_of_work = work["fileid"]
+   # ----------------------------------
+   # Clean text according to Gutenberg corpus
+   # ----------------------------------
    if source == "NLTK Gutenberg":       
       raw_text = nltk.corpus.gutenberg.raw(name_of_work)          
       text = clean_text(raw_text)
@@ -166,37 +170,9 @@ def handle_current_english_work(df, my_gutenberg, source, name_of_work, body_nam
       return df  # Skip processing for unknown sources
    
    # ----------------------------------
-   # Clean text according to Gutenberg corpus
-   # ----------------------------------
-   
-   # ----------------------------------
    # Process text with spaCy
    # ----------------------------------
-   nlp_lang.max_length = max(nlp_lang.max_length, len(text) + 1)
-   doc = nlp_lang(text)
-
-   # ----------------------------------
-   # Build rows
-   # ----------------------------------
-   data = []
-
-   # Loop through sentences
-   for sent in doc.sents:
-      # Loop through tokens in sentence
-      for token in sent:
-         # Find lemma "head"
-         if token.lemma_.lower() == body_name:
-            data.append([
-               sent.text,
-               token.text,
-               token.lemma_,
-               body_name,
-               body_category,
-               lang,
-               source,
-               name_of_work
-            ])
-   
+   data = use_spacy_for_text_processing(text, name_of_work, source, designation, body_category, lang, nlp_lang)
    # ----------------------------------
    # Create dataframe
    # ----------------------------------
@@ -213,7 +189,6 @@ def handle_current_english_work(df, my_gutenberg, source, name_of_work, body_nam
             'Name of work'
          ]
    )
-   
    # ----------------------------------
    # Append to existing dataframe
    # ----------------------------------
@@ -226,36 +201,10 @@ def handle_current_english_work(df, my_gutenberg, source, name_of_work, body_nam
    # Export
    # ----------------------------------
    df.to_excel(
-      body_name + '_lingvistik.xlsx',
+      designation + '_lingvistik.xlsx',
       index=False
    )
 
    print('Head of df with attributes in function:')
    print(df.head())
    return df
-def normalize_text(text):
-    """Gør forskellige linjeskift ens."""
-
-    text = text.replace("\r\n", "\n")
-    text = text.replace("\r", "\n")
-
-    return text
-def clean_text(text):
-   """Rydder linjeskift og retter almindelige UTF-8/Windows-1252
-    encoding-fejl fra Gutenberg-tekst."""
-
-   # Ret fejlfortolket UTF-8, hvis teksten er blevet læst som cp1252
-   # try:
-   #    text = text.encode("cp1252").decode("utf-8")
-   # except (UnicodeEncodeError, UnicodeDecodeError):
-   #    pass
-   text = normalize_text(text)
-   text = text.replace("_", " ") # eg jame ausin uses _ insted of blank to indicate words said with litte pause between them in some works
-   text = text.replace("--", "  ") # eg jame ausin uses --  to indicate renovation pause
-   # Alle former for linjeskift erstattes med mellemrum
-   text = text.replace("\n", " ")
-
-    # Flere whitespace-tegn reduceres til ét mellemrum
-   text = re.sub(r"\s+", " ", text)
-  
-   return text.strip()
