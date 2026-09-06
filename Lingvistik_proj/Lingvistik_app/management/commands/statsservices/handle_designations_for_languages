@@ -1,0 +1,31 @@
+#coming up
+
+
+     ################# Template for next version - not used yet - but could be used to create a more structured approach to the lexicon and translations
+      #       from dataclasses import dataclass, field
+
+      # @dataclass
+      # class TermConcept:
+      #     category: str
+      #     translations: dict[str, str]  # fx {'en': 'head', 'da': 'hoved', 'de': 'kopf'}
+
+      # # Samling af alle koncepter
+      # lexicon = [
+      #     TermConcept(category='body part', translations={'en': 'head', 'da': 'hoved', 'de': 'kopf'}),
+      #     TermConcept(category='body part', translations={'en': 'foot', 'da': 'fod', 'de': 'fuß'}),
+      #     TermConcept(category='sensory',   translations={'en': 'smell', 'da': 'lugt', 'de': 'geruch'}),
+      #     TermConcept(category='organ',     translations={'en': 'heart', 'da': 'hjerte', 'de': 'herz'}),
+      # ]
+
+      # def get_terms_for_language(lexicon, lang='en'):
+      #     """Uddrager ordbog til et specifikt sprog: {lokalt_ord: kategori}"""
+      #     return {
+      #         concept.translations[lang]: concept.category 
+      #         for concept in lexicon 
+      #         if lang in concept.translations
+      #     }
+
+      # # Generer automatisk listen til dansk NLP-kørsel
+      # da_terms = get_terms_for_language(lexicon, 'da')
+      # # Resultat: {'hoved': 'body part', 'fod': 'body part', 'lugt': 'sensory', 'hjerte': 'organ'}
+      ##########

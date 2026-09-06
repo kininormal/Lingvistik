@@ -12,7 +12,7 @@ from huggingface_hub import login
 import datasets
 from datasets import load_dataset, get_dataset_config_names, concatenate_datasets
 
-from .statsservices.handle_useing_spacy import use_spacy_for_text_processing
+from .statsservices.handle_useing_spacy import polarity_and_subjectivity_analysis_with_spacy, use_spacy_for_text_processing
 from .statsservices.handle_corpus_building import handle_gutenberg_corpora_build
 from .statsservices.texthandling import clean_text
 
@@ -29,35 +29,7 @@ class Command(BaseCommand):
       language_df = pd.DataFrame()
       
           
-      ################# Template for next version - not used yet - but could be used to create a more structured approach to the lexicon and translations
-      #       from dataclasses import dataclass, field
 
-      # @dataclass
-      # class TermConcept:
-      #     category: str
-      #     translations: dict[str, str]  # fx {'en': 'head', 'da': 'hoved', 'de': 'kopf'}
-
-      # # Samling af alle koncepter
-      # lexicon = [
-      #     TermConcept(category='body part', translations={'en': 'head', 'da': 'hoved', 'de': 'kopf'}),
-      #     TermConcept(category='body part', translations={'en': 'foot', 'da': 'fod', 'de': 'fuß'}),
-      #     TermConcept(category='sensory',   translations={'en': 'smell', 'da': 'lugt', 'de': 'geruch'}),
-      #     TermConcept(category='organ',     translations={'en': 'heart', 'da': 'hjerte', 'de': 'herz'}),
-      # ]
-
-      # def get_terms_for_language(lexicon, lang='en'):
-      #     """Uddrager ordbog til et specifikt sprog: {lokalt_ord: kategori}"""
-      #     return {
-      #         concept.translations[lang]: concept.category 
-      #         for concept in lexicon 
-      #         if lang in concept.translations
-      #     }
-
-      # # Generer automatisk listen til dansk NLP-kørsel
-      # da_terms = get_terms_for_language(lexicon, 'da')
-      # # Resultat: {'hoved': 'body part', 'fod': 'body part', 'lugt': 'sensory', 'hjerte': 'organ'}
-      ##########
-      
       list_of_names  = [ ['head', 'body part'], ['foot', 'body part' ], ['smell', 'sensory'], ['heart', 'organ'], ['eye', 'body part'], 
                         ['ear', 'body part'], ['nose', 'body part'], ['mouth', 'body part'], ['hand', 'body part'], ['arm', 'body part'], 
                         ['leg', 'body part'], ['brain', 'organ'], ['liver', 'organ'], ['kidney', 'organ'], ['gut', 'organ'],
@@ -72,9 +44,18 @@ class Command(BaseCommand):
          #add danish text from corpus to language_df
          # designation are in english - Tenplate for next version - not used yet - but could be used to create a more structured approach to the lexicon and translations
          #update_danish_data(language_df, designation, body_category, 'danish') focus on engisk soo far
-         
-         
-      print('Language df after updates -  ONLY ENGLISH ONLY two works SO FAR:')
+         #Handle 'spacytextblob' already exists in pipeline problem - should be handled in a more efficient way later
+         # for i, row in language_df.iterrows():
+         #    text = row['Text']
+         #    polarity, subjectivity = polarity_and_subjectivity_analysis_with_spacy(text, nlp_en)
+         #    language_df.at[i, 'Polarity'] = polarity
+         #    language_df.at[i, 'Subjectivity'] = subjectivity
+         #Test only 42 rows in language_df for now - to be able to handle it in memory and not run out of memory - should be handled in a more efficient way later
+         for i, row in language_df.iterrows():
+            print(f"Row {i}: tekst er {row['Text']}") # AS EXPECTED - but not the whole text - only the first 500 characters - should be handled in a more efficient way later
+            #Problem with 'spacytextblob' already exists in pipeline.
+            # print(f"Row {i}: Polarity={row['Polarity']}, Subjectivity={row['Subjectivity']}")
+      print('Language df after registration -  ONLY ENGLISH ONLY two works SO FAR:')
       rows, columns = language_df.shape
       print(f"Rows in main function:  {rows}")
       print("First rows in main function:")
@@ -161,8 +142,7 @@ def handle_current_english_work(df, my_gutenberg, work, designation, body_catego
    if source == "NLTK Gutenberg":       
       raw_text = nltk.corpus.gutenberg.raw(name_of_work)          
       text = clean_text(raw_text)
-   elif source == "Project Gutenberg":          
-       
+   elif source == "Project Gutenberg":              
       raw_text =  my_gutenberg.raw(name_of_work)          
       text = clean_text(raw_text)
    else:          
@@ -189,6 +169,13 @@ def handle_current_english_work(df, my_gutenberg, work, designation, body_catego
             'Name of work'
          ]
    )
+   #Here 'Text' is the sentence where the word was found, 'Found word' is the actual word found, 'Lemma' is the base form of the word, 'Body name' is the designation (e.g., head, foot), 'Body category' is the category of the body part (e.g., organ, sensory), 'Language' is the language of the text, 'Source' is where the text came from (e.g., NLTK Gutenberg, Project Gutenberg), and 'Name of work' is the identifier for the specific work in the corpus.
+   #WRONG PLACE - should be done for each sentence and not for the whole text - but for now it is done for the whole text - should be done in the loop above for each sentence
+   # print("Type of new_data:", type(new_data))
+   # print("Can I access text as expected:", new_data['Text'])
+   # text = new_data['Text']
+   # polarity, subjectivity = polarity_and_subjectivity_analysis_with_spacy(text.to_string(), nlp_lang) # text is Series, convert to string for analysis
+   # print(f"Polarity: {polarity}, Subjectivity: {subjectivity}")
    # ----------------------------------
    # Append to existing dataframe
    # ----------------------------------
@@ -196,6 +183,13 @@ def handle_current_english_work(df, my_gutenberg, work, designation, body_catego
       [df, new_data],
       ignore_index=True
    )
+   #WRONG PLACE
+   # rows, columns = df.shape
+   # print(f"Columns before adding polarities and subjectivities in function for english current work:  {columns}")
+   # #Does this work as expected
+   # df['Polarity'] = polarity
+   # df['Subjectivity'] = subjectivity   
+   # print(f"Columns After adding polarities and subjectivities in function for english current work:  {columns}")
   
    # ----------------------------------
    # Export
