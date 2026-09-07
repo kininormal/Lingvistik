@@ -1,4 +1,4 @@
-#about stats.py: dir       #about manage.py stats
+#about stats.py:  https://www.geeksforgeeks.org/python/custom-django-management-commands/      #about manage.py stats
 import csv
 
 from django.core.management.base import BaseCommand
@@ -15,6 +15,8 @@ from datasets import load_dataset, get_dataset_config_names, concatenate_dataset
 from .statsservices.handle_useing_spacy import polarity_and_subjectivity_analysis_with_spacy, use_spacy_for_text_processing
 from .statsservices.handle_corpus_building import handle_gutenberg_corpora_build
 from .statsservices.texthandling import clean_text
+
+
 
 class Command(BaseCommand):
 
@@ -34,6 +36,25 @@ class Command(BaseCommand):
                         ['ear', 'body part'], ['nose', 'body part'], ['mouth', 'body part'], ['hand', 'body part'], ['arm', 'body part'], 
                         ['leg', 'body part'], ['brain', 'organ'], ['liver', 'organ'], ['kidney', 'organ'], ['gut', 'organ'],
                         ['stomach', 'organ'], ['lung', 'organ']]
+      
+      
+      
+      from transformers import pipeline
+      print("from transformers import pipeline achieved")
+      subjectivity_classifier = pipeline(
+         "text-classification",
+         model="GroNLP/mdebertav3-subjectivity-english"
+      )
+      print("I am after  pipeline")
+      print(subjectivity_classifier(
+         "That is what you have in your head, I know and what you would certainly say if my father were not by."
+      ))
+      
+      
+      
+      
+      
+      
       for part in list_of_names[:1]: #test with only two works for now -with two body names head and foot
          designation = part[0]
          body_category = part[1]
@@ -51,10 +72,10 @@ class Command(BaseCommand):
          #    language_df.at[i, 'Polarity'] = polarity
          #    language_df.at[i, 'Subjectivity'] = subjectivity
          #Test only 42 rows in language_df for now - to be able to handle it in memory and not run out of memory - should be handled in a more efficient way later
-         for i, row in language_df.iterrows():
-            print(f"Row {i}: tekst er {row['Text']}") # AS EXPECTED - but not the whole text - only the first 500 characters - should be handled in a more efficient way later
-            #Problem with 'spacytextblob' already exists in pipeline.
-            # print(f"Row {i}: Polarity={row['Polarity']}, Subjectivity={row['Subjectivity']}")
+         # for i, row in language_df.iterrows():
+         #    print(f"Row {i}: tekst er {row['Text']}") # AS EXPECTED - but not the whole text - only the first 500 characters - should be handled in a more efficient way later
+         #    #Problem with 'spacytextblob' already exists in pipeline.
+         #    # print(f"Row {i}: Polarity={row['Polarity']}, Subjectivity={row['Subjectivity']}")
       print('Language df after registration -  ONLY ENGLISH ONLY two works SO FAR:')
       rows, columns = language_df.shape
       print(f"Rows in main function:  {rows}")
@@ -71,7 +92,6 @@ def  update_english_data(df, designation, body_category, language, nlp_lang): #L
    MY_CORPUS_PATH = BASE_DIR / map_name_for_sources
    #Allow the path of MY_CORPUS_PATH for PlaintextCorpusReader
    nltk.data.path.append(str(MY_CORPUS_PATH)) #DO NOT USE allowed NLTK_PATH in allowed virtual environment map - Works from NLTK are then "lost" and not found by PlaintextCorpusReader - only works for nltk.corpus.gutenberg
-   
    works, my_gutenberg = handle_gutenberg_corpora_build(MY_CORPUS_PATH, language)
    
   
@@ -162,7 +182,13 @@ def handle_current_english_work(df, my_gutenberg, work, designation, body_catego
             'Text',
             'Found word',
             'Lemma',
-            'Body name',
+            'Sentences polarity',
+            'Sentences subjectivity',
+            'Chars polarity',
+            'Chars subjectivity',
+            'Three sentences polarity',
+            'Three sentences subjectivity',
+            'Designation',
             'Body category',
             'Language',
             'Source',
