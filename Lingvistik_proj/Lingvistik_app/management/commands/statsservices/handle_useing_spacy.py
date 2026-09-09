@@ -40,15 +40,19 @@ def use_spacy_for_text_processing(text, name_of_work, source, designation, body_
     "text-classification",
     model="GroNLP/mdebertav3-subjectivity-english"
    )
-   test_text = "That is what you have in your head, I know and what you would certainly say if my father were not by."
-
+   the_text = "That is what you have in your head, I know and what you would certainly say if my father were not by."
+  
    print("TextBlob:")
    polarity, subjectivity = \
-   polarity_and_subjectivity_analysis_with_spacy(test_text, nlp_lang)
+   polarity_and_subjectivity_analysis_with_spacy(the_text, nlp_lang)
+   print(f"TextBlob polarity: {polarity},TextBlob subjectivity: {subjectivity}")
 
    print("Hugging Face:")
    label, score = \
-   subjectivity_analysis_with_huggingface(test_text, subjectivity_classifier)
+   subjectivity_analysis_with_huggingface(the_text, subjectivity_classifier)
+   print(f"Hugging Face label: {label},Hugging Face score: {score}") 
+         
+   
     
    # ----------------------------------
    # Build rows
@@ -57,6 +61,13 @@ def use_spacy_for_text_processing(text, name_of_work, source, designation, body_
    
    # Loop through sentences
    for sent in doc.sents:
+      
+      
+      
+
+    
+      
+      
       # Loop through tokens in sentence
       for token in sent:
          # Find starten af forrige sætning (eller starten af doc)
@@ -76,6 +87,14 @@ def use_spacy_for_text_processing(text, name_of_work, source, designation, body_
             #250 words before and after lemma 250 chars if words not possible
             test_txt = f"Found text with token loop: {sent.text}"
             full_sentence = sent.text
+            
+            result = subjectivity_classifier(full_sentence)
+            print("Hugging test")
+            print(result)
+                  
+            label = result[0]["label"]
+            score = result[0]["score"]
+            print(f"Hugging test Label is {label}, Score is {score}")
   
            
             # 2a) 250 words before and after
@@ -88,11 +107,11 @@ def use_spacy_for_text_processing(text, name_of_work, source, designation, body_
             chars_window = doc.text[start_char:end_char]
             
             # Eksempel på output
-            print(f"Sætning: {full_sentence}\n")
-            print("Test tre sætninger:")
-            print(three_sentences)
+            # print(f"Sætning: {full_sentence}\n")
+            # print("Test tre sætninger:")
+            # print(three_sentences)
 
-            print(f"250 tegn vindue: {chars_window}\n")
+            # print(f"250 tegn vindue: {chars_window}\n")
             
             
             #Can i avoid  #Problem with 'spacytextblob' already exists in pipeline. by using a different nlp_lang for the polarity_and_subjectivity_analysis_with_spacy function?
@@ -109,8 +128,7 @@ def use_spacy_for_text_processing(text, name_of_work, source, designation, body_
             print(f"Polarity={three_sentences_polarity:.4f}, Subjectivity={three_sentences_subjectivity:.4f}")
             
             
-            
-            print(test_txt)
+         
             data.append([
                sent.text,
                token.text,
