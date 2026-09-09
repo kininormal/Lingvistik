@@ -83,20 +83,7 @@ class Command(BaseCommand):
          language_df = None
          #add english text from corpus to language_df
          language_df  = update_english_data(language_df, designation, body_category, 'English',  nlp_en)
-         #add danish text from corpus to language_df
-         # designation are in english - Tenplate for next version - not used yet - but could be used to create a more structured approach to the lexicon and translations
-         #update_danish_data(language_df, designation, body_category, 'danish') focus on engisk soo far
-         #Handle 'spacytextblob' already exists in pipeline problem - should be handled in a more efficient way later
-         # for i, row in language_df.iterrows():
-         #    text = row['Text']
-         #    polarity, subjectivity = polarity_and_subjectivity_analysis_with_spacy(text, nlp_en)
-         #    language_df.at[i, 'Polarity'] = polarity
-         #    language_df.at[i, 'Subjectivity'] = subjectivity
-         #Test only 42 rows in language_df for now - to be able to handle it in memory and not run out of memory - should be handled in a more efficient way later
-         # for i, row in language_df.iterrows():
-         #    print(f"Row {i}: tekst er {row['Text']}") # AS EXPECTED - but not the whole text - only the first 500 characters - should be handled in a more efficient way later
-         #    #Problem with 'spacytextblob' already exists in pipeline.
-         #    # print(f"Row {i}: Polarity={row['Polarity']}, Subjectivity={row['Subjectivity']}")
+        
       print('Language df after registration -  ONLY ENGLISH ONLY two works SO FAR:')
       rows, columns = language_df.shape
       print(f"Rows in main function:  {rows}")
@@ -117,7 +104,7 @@ def  update_english_data(df, designation, body_category, language, nlp_lang): #L
    
   
    #loop though works and process each work   
-   for work in works[:1]: #can be limited to n works with works[:n] does it wok outside NTLK 18 works and 12 works from my_gutenberg - total 30 works - can be limited to n works with works[:n] does it wok outside NTLK 18 works and 12 works from my_gutenberg - total 30 works
+   for work in works[:1]: #TEST WITH ONE WORK can be limited to n works with works[:n] does it wok outside NTLK 18 works and 12 works from my_gutenberg - total 30 works - can be limited to n works with works[:n] does it wok outside NTLK 18 works and 12 works from my_gutenberg - total 30 works
       # ----------------------------------
       # Build basis for English language data for current work
       # ----------------------------------
@@ -201,15 +188,10 @@ def handle_current_english_work(df, my_gutenberg, work, designation, body_catego
       data,
          columns=[
             'Text',
+            #'Tree sentences* #here to evaluate whether previous and/or following sentence should be taken into account for in next version for sentiment
             'Found word',
             'Lemma',
-            'Sentences polarity',
-            'Sentences subjectivity',
-            'Chars polarity',
-            'Chars subjectivity',
-            'Three sentences polarity',
-            'Three sentences subjectivity',
-            'Designation',
+            'Designation', #renamed some are eg senses like smell
             'Body category',
             'Language',
             'Source',
