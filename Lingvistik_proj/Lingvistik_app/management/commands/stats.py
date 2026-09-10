@@ -1,6 +1,7 @@
 
 from django.core.management.base import BaseCommand
 import nltk
+import re
 from schemdraw import config
 import spacy
 from pathlib import Path
@@ -62,7 +63,7 @@ def  update_english_data(df, designation, body_category, language, nlp_lang): #L
    
   
    #loop though works and process each work   
-   for work in works[:1]: #TEST WITH ONE WORK can be limited to n works with works[:n] does it wok outside NTLK 18 works and 12 works from my_gutenberg - total 30 works - can be limited to n works with works[:n] does it wok outside NTLK 18 works and 12 works from my_gutenberg - total 30 works
+   for work in works[:3]: #TEST WITH ONE WORK can be limited to n works with works[:n] does it wok outside NTLK 18 works and 12 works from my_gutenberg - total 30 works - can be limited to n works with works[:n] does it wok outside NTLK 18 works and 12 works from my_gutenberg - total 30 works
    
       # ----------------------------------
       # Build basis for English language data for current work
@@ -136,28 +137,48 @@ def handle_current_english_work(df, my_gutenberg, work, designation, body_catego
    else:          
       print(f"PROBLEM: Unknown source: {source}. Skipping work: {name_of_work}")        
       return df  # Skip processing for unknown sources
+   #Easy naming of db and data one pr work if deeded 
+   chars_in_pattern = ".txt"
+   pattern = f"[{chars_in_pattern}]"
    
+   current_data_name = re.sub(pattern, "", name_of_work) 
+   data_name = 'data' +  current_data_name
+   #new_data = 'new' + data_name
    # ----------------------------------
    # Process text with spaCy
    # ----------------------------------
    data = use_spacy_for_text_processing(text, name_of_work, source, designation, body_category, lang, nlp_lang)
 
-   # ----------------------------------
-   # Create dataframe
-   # ----------------------------------
+   
+   
+
    new_data = pd.DataFrame(
       data,
-         columns=[
-            'Text',
-            'Tree sentences', #here to evaluate whether previous and/or following sentence should be taken into account for in next version for sentiment
-            'Found word',
-            'Lemma',
-            'Designation', #renamed some are eg senses like smell or pictures/metafores of autonome body "reactions"
-            'Body category',
-            'Language',
-            'Source',
-            'Name of work'
-         ]
+      columns=[
+        'Text',
+        'Tree sentences',
+        'Found word',
+        'Lemma',
+        'Designation',
+        'Body category',
+        'Language',
+        'Source',
+        'Name of work',
+
+        'before_NOUNS',
+        'before_ADJ',
+        'before_VERB',
+        'before_ADV',
+        'before_ADP',
+        'before_obj',
+
+        'after_NOUNS',
+        'after_ADJ',
+        'after_VERB',
+        'after_ADV',
+        'after_ADP',
+        'after_obj'
+    ]
    )
   
    # Append to existing dataframe
@@ -166,13 +187,13 @@ def handle_current_english_work(df, my_gutenberg, work, designation, body_catego
       [df, new_data],
       ignore_index=True
    )
-  
-  
+   
+   excel_work_name = re.sub(pattern, "", name_of_work) 
    # ----------------------------------
    # Export
    # ----------------------------------
    df.to_excel(
-      designation + '_lingvistik.xlsx',
+      excel_work_name + '_' + designation + '_lingvistik.xlsx',
       index=False
    )
 
