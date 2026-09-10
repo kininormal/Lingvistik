@@ -1,35 +1,4 @@
 
-# from django.core.management.base import BaseCommand
-
-# from schemdraw import config
-
-# class Command(BaseCommand):
-
-#     def handle(self, *args, **options):
-
-      # import nltk
-
-      # print("NLTK:", nltk.__version__)
-      
-      # import os
-
-      # print("PATH:")
-      # print(os.environ.get("PATH"))
-      
-      # import spacy
-      
-      # print("SPACY:", spacy.__version__)
-
-      # import torch
-
-      # # print("TORCH:", torch.__version__)
-
-      
-
-
-
-
-
 from django.core.management.base import BaseCommand
 import nltk
 from schemdraw import config
@@ -63,20 +32,9 @@ class Command(BaseCommand):
                         ['leg', 'body part'], ['brain', 'organ'], ['liver', 'organ'], ['kidney', 'organ'], ['gut', 'organ'],
                         ['stomach', 'organ'], ['lung', 'organ']]
       
-      import transformers
-      from transformers import pipeline
-      print("from transformers import pipeline achieved")
-      subjectivity_classifier = pipeline(
-         "text-classification",
-         model="GroNLP/mdebertav3-subjectivity-english"
-      )
-      print("I am after  pipeline")
-      print(subjectivity_classifier(
-         "That is what you have in your head, I know and what you would certainly say if my father were not by."
-      ))
-      
-
+     
       for part in list_of_names[:1]: #test with only two works for now -with two body names head and foot
+        
          designation = part[0]
          body_category = part[1]
          #for every designation and body_category create a new language_df with english and danish data
@@ -94,7 +52,7 @@ class Command(BaseCommand):
          
       self.stdout.write(self.style.SUCCESS('Successfully updated language data - just initial start.'))
 def  update_english_data(df, designation, body_category, language, nlp_lang): #LOOK at 'clean up' lang is here but then set later in work loop - should be set in function and not in loop - but for now it is set in loop
-  
+
    BASE_DIR = Path(__file__).resolve().parents[4] #go to Lingvistik from Lingvistik_proj/Lingvistik_app/management/commands/stats.py, 4 levels to 
    map_name_for_sources = 'corpora/gutenberg/'
    MY_CORPUS_PATH = BASE_DIR / map_name_for_sources
@@ -105,6 +63,7 @@ def  update_english_data(df, designation, body_category, language, nlp_lang): #L
   
    #loop though works and process each work   
    for work in works[:1]: #TEST WITH ONE WORK can be limited to n works with works[:n] does it wok outside NTLK 18 works and 12 works from my_gutenberg - total 30 works - can be limited to n works with works[:n] does it wok outside NTLK 18 works and 12 works from my_gutenberg - total 30 works
+   
       # ----------------------------------
       # Build basis for English language data for current work
       # ----------------------------------
@@ -161,6 +120,7 @@ def update_danish_data(df,  designation, body_category, lang):
 
 
 def handle_current_english_work(df, my_gutenberg, work, designation, body_category, nlp_lang):
+  
    source = work["source"]
    lang = work["language"]
    name_of_work = work["fileid"]
@@ -181,6 +141,7 @@ def handle_current_english_work(df, my_gutenberg, work, designation, body_catego
    # Process text with spaCy
    # ----------------------------------
    data = use_spacy_for_text_processing(text, name_of_work, source, designation, body_category, lang, nlp_lang)
+
    # ----------------------------------
    # Create dataframe
    # ----------------------------------
@@ -188,37 +149,24 @@ def handle_current_english_work(df, my_gutenberg, work, designation, body_catego
       data,
          columns=[
             'Text',
-            #'Tree sentences* #here to evaluate whether previous and/or following sentence should be taken into account for in next version for sentiment
+            'Tree sentences', #here to evaluate whether previous and/or following sentence should be taken into account for in next version for sentiment
             'Found word',
             'Lemma',
-            'Designation', #renamed some are eg senses like smell
+            'Designation', #renamed some are eg senses like smell or pictures/metafores of autonome body "reactions"
             'Body category',
             'Language',
             'Source',
             'Name of work'
          ]
    )
-   #Here 'Text' is the sentence where the word was found, 'Found word' is the actual word found, 'Lemma' is the base form of the word, 'Body name' is the designation (e.g., head, foot), 'Body category' is the category of the body part (e.g., organ, sensory), 'Language' is the language of the text, 'Source' is where the text came from (e.g., NLTK Gutenberg, Project Gutenberg), and 'Name of work' is the identifier for the specific work in the corpus.
-   #WRONG PLACE - should be done for each sentence and not for the whole text - but for now it is done for the whole text - should be done in the loop above for each sentence
-   # print("Type of new_data:", type(new_data))
-   # print("Can I access text as expected:", new_data['Text'])
-   # text = new_data['Text']
-   # polarity, subjectivity = polarity_and_subjectivity_analysis_with_spacy(text.to_string(), nlp_lang) # text is Series, convert to string for analysis
-   # print(f"Polarity: {polarity}, Subjectivity: {subjectivity}")
-   # ----------------------------------
+  
    # Append to existing dataframe
    # ----------------------------------
    df = pd.concat(
       [df, new_data],
       ignore_index=True
    )
-   #WRONG PLACE
-   # rows, columns = df.shape
-   # print(f"Columns before adding polarities and subjectivities in function for english current work:  {columns}")
-   # #Does this work as expected
-   # df['Polarity'] = polarity
-   # df['Subjectivity'] = subjectivity   
-   # print(f"Columns After adding polarities and subjectivities in function for english current work:  {columns}")
+  
   
    # ----------------------------------
    # Export
