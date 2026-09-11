@@ -153,6 +153,7 @@ def handle_current_english_work(df, my_gutenberg, work, designation, body_catego
    new_data = pd.DataFrame(
       data,
       columns=[
+         'Finding ID',
          'Text',
          'Tree sentences',
          'Found word',

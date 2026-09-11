@@ -1,8 +1,14 @@
 <!DOCTYPE html>
-<!-- https://css-tricks.com/abusing-customizable-selects/ -->
-{% extends 'Lingvistik_app/basis.html' %}
-{% load static %}
-{% block content %}
-<h1>Index page</h1>
-
-{% endblock content %}
+<html>
+<head>
+    <title>Dependency Diagram</title>
+</head>
+<body>
+    <h1>Sætningsanalyse</h1>
+    
+    <!-- Render diagrammet direkte i din HTML -->
+    <div class="chart-container">
+        {{ dependency_chart|safe }}
+    </div>
+</body>
+</html>

@@ -1,8 +1,9 @@
 from pydoc import doc
 
 import spacy
-
-
+from spacy import displacy
+import re
+from ....models import ParsedSentence
 
 def get_sentence_context(doc, target_sent):
     
@@ -31,16 +32,37 @@ def use_spacy_for_text_processing(text, name_of_work, source, designation, body_
    nlp_lang.max_length = max(nlp_lang.max_length, len(text) + 1)
    doc = nlp_lang(text)
 
+   #-----------------------------------
+   # New work sentencesNr 0 i work
+   #          lemma occurred 0 times
+   #-----------------------------------
+   sentenceNr = 0
+   lemma_occurrences = 0
    # ----------------------------------
    # Build rows
    # ----------------------------------
+   chars_in_pattern = ".txt"
+   pattern = f"[{chars_in_pattern}]"
+      
+    
+   
    data = []
    
    for sent in doc.sents:
       # Loop through tokens in sentence
       for token in sent:
+         sentenceNr = sentenceNr + 1
          # Find lemma matching the designation
          if token.lemma_.lower() == designation:
+            #lemma found in  work
+            WORKID =  re.sub(pattern, "", name_of_work) 
+            #number of times lemma found
+            lemma_occurrences = lemma_occurrences + 1
+         
+            WORKID_SENTNR_LEMMANR = f"{WORKID}_S_{sentenceNr}_L_{lemma_occurrences}"
+            
+            
+           
             #Full sentence
             full_sentence = sent.text
             #
@@ -55,6 +77,13 @@ def use_spacy_for_text_processing(text, name_of_work, source, designation, body_
             end_idx = sent[-1].doc[sent.end].sent.end if sent.end < len(doc) else len(doc)
             # Tree sentences
             three_sentences = doc[start_idx:end_idx].text
+            #Handle registraion in model 
+            model_doc = nlp_lang(three_sentences)
+            svg_html = displacy.render(model_doc, style="dep", page=False)
+
+            obj = ParsedSentence.objects.create(findingID=WORKID_SENTNR_LEMMANR,  treesentences=three_sentences, svg_html=svg_html)
+            
+            
             # ----------------------------------
             # Loop through tokens in sentence
             # ----------------------------------
@@ -143,6 +172,7 @@ def use_spacy_for_text_processing(text, name_of_work, source, designation, body_
                
             
             data.append([
+               WORKID_SENTNR_LEMMANR,
                sent.text,
                three_sentences,  #evaluate whether previous and/or following sentence should be taken into account for in next version for sentiment
                token.text,
