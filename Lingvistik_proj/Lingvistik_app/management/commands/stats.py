@@ -61,9 +61,9 @@ def  update_english_data(df, designation, body_category, language, nlp_lang): #L
    nltk.data.path.append(str(MY_CORPUS_PATH)) #DO NOT USE allowed NLTK_PATH in allowed virtual environment map - Works from NLTK are then "lost" and not found by PlaintextCorpusReader - only works for nltk.corpus.gutenberg
    works, my_gutenberg = handle_gutenberg_corpora_build(MY_CORPUS_PATH, language)
    
-  
+   print("number of works before handle_current_english_work: ", len(works))
    #loop though works and process each work   
-   for work in works[:3]: #TEST WITH ONE WORK can be limited to n works with works[:n] does it wok outside NTLK 18 works and 12 works from my_gutenberg - total 30 works - can be limited to n works with works[:n] does it wok outside NTLK 18 works and 12 works from my_gutenberg - total 30 works
+   for work in works[:3]: #TEST WITH ONE WORK
    
       # ----------------------------------
       # Build basis for English language data for current work
@@ -125,6 +125,7 @@ def handle_current_english_work(df, my_gutenberg, work, designation, body_catego
    source = work["source"]
    lang = work["language"]
    name_of_work = work["fileid"]
+   print(f"Handle work with name: {name_of_work}")      
    # ----------------------------------
    # Clean text according to Gutenberg corpus
    # ----------------------------------
@@ -137,7 +138,7 @@ def handle_current_english_work(df, my_gutenberg, work, designation, body_catego
    else:          
       print(f"PROBLEM: Unknown source: {source}. Skipping work: {name_of_work}")        
       return df  # Skip processing for unknown sources
-   #Easy naming of db and data one pr work if deeded 
+   #Easy naming of db and data one pr work if needed 
    chars_in_pattern = ".txt"
    pattern = f"[{chars_in_pattern}]"
    
@@ -149,35 +150,31 @@ def handle_current_english_work(df, my_gutenberg, work, designation, body_catego
    # ----------------------------------
    data = use_spacy_for_text_processing(text, name_of_work, source, designation, body_category, lang, nlp_lang)
 
-   
-   
-
    new_data = pd.DataFrame(
       data,
       columns=[
-        'Text',
-        'Tree sentences',
-        'Found word',
-        'Lemma',
-        'Designation',
-        'Body category',
-        'Language',
-        'Source',
-        'Name of work',
-
-        'before_NOUNS',
-        'before_ADJ',
-        'before_VERB',
-        'before_ADV',
-        'before_ADP',
-        'before_obj',
-
-        'after_NOUNS',
-        'after_ADJ',
-        'after_VERB',
-        'after_ADV',
-        'after_ADP',
-        'after_obj'
+         'Text',
+         'Tree sentences',
+         'Found word',
+         'Lemma',
+         'Designation',
+         'Body category',
+         'Language',
+         'Source',
+         'Name of work',
+         'Before Nouns',
+         'Before Adjektives',
+         'Before Verbs',
+         'Before Adverbs',
+         'Before Pre- and postpositions',
+         'Before Objects',
+         'After Nouns',
+         'After Adjektives',
+         'After Verbs',
+         'After Adverbs',
+         'After Pre- and postpositions',
+         'After Objects',
+        
     ]
    )
   
