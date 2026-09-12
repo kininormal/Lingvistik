@@ -8,7 +8,7 @@ from pathlib import Path
 import pandas as pd
 from huggingface_hub import login
 from datasets import load_dataset, get_dataset_config_names, concatenate_datasets
-
+from ... models import ParsedSentence
 from .statsservices.handle_useing_spacy import use_spacy_for_text_processing
 from .statsservices.handle_corpus_building import handle_gutenberg_corpora_build
 from .statsservices.texthandling import clean_text
@@ -19,6 +19,14 @@ class Command(BaseCommand):
    help = 'Update data basis'
 
    def handle(self, *args, **kwargs):
+      #------TEST FASE START BY empy records thats visualizes sentenses
+      ParsedSentence.objects.all().delete()
+       #check
+      records = ParsedSentence.objects.all()
+      print("Number of records form litere works are initilizes to: ", len(records) )
+  
+      
+      
       # Load English spaCy model
       nlp_en = spacy.load("en_core_web_sm")
       nlp_da = spacy.load("da_core_news_sm")
