@@ -1,14 +1,34 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>Dependency Diagram</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sentances visualizer</title>
 </head>
 <body>
-    <h1>Sætningsanalyse</h1>
-    
-    <!-- Render diagrammet direkte i din HTML -->
-    <div class="chart-container">
-        {{ dependency_chart|safe }}
+    <h1>Show tree sentances, where body part, organ, sense or picture occures in center sentance</h1> 
+    <h3>Evaluate how to find sentiment and meaning </h3>
+    <div class="container">
+        {% for post in page_obj.object_list %}
+          {# note that the list of posts are in the page_obj.object_list not page_obj #}
+            <h2>{{post.findingID}}</h2>
+            <div class="chart-container">
+        {{ post.svg_html|safe }}
     </div>
+<p>{{post.content}}</p>
+
+            <hr/>
+         {% endfor %}
+    </div>
+    <center>
+        {%if page_obj.has_previous %} {# whether the previous page exists #}
+            <a href="?page={{page_obj.previous_page_number}}"><</a> {# link to the prev page #}
+        {% endif %}
+        <span>{{page_obj.number}}</span> {# the current page number #}
+      
+        {%if page_obj.has_next %} {# whether the next page exists #}
+            <a href="?page={{page_obj.next_page_number}}">></a> {# link to the next page #}
+        {% endif %}
+    </center>
 </body>
 </html>

@@ -1,5 +1,5 @@
 from django.shortcuts import render, HttpResponse, redirect
-
+from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 import spacy
 from spacy import displacy
 from . models import ParsedSentence
@@ -8,38 +8,30 @@ from . models import ParsedSentence
 nlp_en = spacy.load("en_core_web_sm")
 # Create your views here.
 def index(request):
-    
+    diagramlist = []
     #https://www.geeksforgeeks.org/python/django-orm-inserting-updating-deleting-data/
-    sentence_obj_holder = ParsedSentence.objects.all()
-    print("sentences in sentence_obj_holder ", len(sentence_obj_holder))
-    sentencediagramNr = 0
-    text = "Django gør det nemt at integrere spacy."
-    for sentenceElement in  sentence_obj_holder:
-        sentencediagramNr =  sentencediagramNr +1
-        svg_html = sentenceElement.svg_html
-  
-        #make variable 
-        sentencevariable  = f"sentence_{sentencediagramNr}"
-        context = f"context_{sentencediagramNr}"
-        context = {
-                sentencevariable: svg_html
-            }
-    sentencediagramNr = 0
-    for showSentence in range(sentencediagramNr):
-        #sentencediagramNr = sentencediagramNr +1
-        #if sentencediagramNr == 1
-        #  context = f"context_{sentencediagramNr}"
-        #elif:
-        # context = context|f"context_{sentencediagramNr}"
-        pass
-    
-    doc = nlp_en(text)
-    
-    # Generer den rå HTML/SVG-streng
-    svg_html = displacy.render(doc, style="dep", page=False)
-    
-    context = {
-        'dependency_chart': svg_html
-    }
+    sentence_holder = ParsedSentence.objects.all()
+    paginator = Paginator(sentence_holder, 20)  # Show 5 posts per page
+    page_number = request.GET.get('page')
+    try:
+        page_obj = paginator.get_page(page_number)
+    except PageNotAnInteger:
+        page_obj = paginator.page(1)
+    except EmptyPage:
+        page_obj = paginator.page(paginator.num_pages)
+
+    context = {'page_obj': page_obj}
     return render(request, 'Lingvistik_app/index.html', context)
+
+    
+    # text = "Django gør det nemt at integrere spacy."
+    # doc = nlp_en(text)
+    
+    # # Generer den rå HTML/SVG-streng
+    # svg_html = displacy.render(doc, style="dep", page=False)
+    
+    # context = {
+    #     'dependency_chart': svg_html
+    # }
+    # return render(request, 'Lingvistik_app/index.html', context)
     
