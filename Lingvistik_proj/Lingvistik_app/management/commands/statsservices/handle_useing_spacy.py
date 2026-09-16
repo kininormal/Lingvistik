@@ -4,7 +4,7 @@ import spacy
 from spacy import displacy
 import re
 from ....models import ParsedSentence
-
+from handle_svg import make_svg_responsive
 def get_sentence_context(doc, target_sent):
     
     sentences = list(doc.sents)
@@ -79,9 +79,19 @@ def use_spacy_for_text_processing(text, name_of_work, source, designation, body_
             three_sentences = doc[start_idx:end_idx].text
             #Handle registraion in model 
             model_doc = nlp_lang(three_sentences)
-            svg_html = displacy.render(model_doc, style="dep", page=False)
+            
+            options = {
+               "compact": True,      # tighter arcs, smaller overall diagram
+               "distance": 90,        # default is ~175; lower = tokens closer together
+               "font": "Arial",
+               "bg": "#ffffff",
+            }
+            
+            svg_html = displacy.render(model_doc, style="dep", options=options, page=False)
+            
+            
 
-            obj = ParsedSentence.objects.create(findingID=WORKID_SENTNR_LEMMANR,  treesentences=three_sentences, svg_html=svg_html)
+            obj = ParsedSentence.objects.create(findingID=WORKID_SENTNR_LEMMANR,  treesentences=three_sentences, svg_html=make_svg_responsive(svg_html))
             
             
             # ----------------------------------

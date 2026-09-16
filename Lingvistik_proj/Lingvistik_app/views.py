@@ -10,18 +10,19 @@ nlp_en = spacy.load("en_core_web_sm")
 def index(request):
     diagramlist = []
     #https://www.geeksforgeeks.org/python/django-orm-inserting-updating-deleting-data/
-    sentence_holder = ParsedSentence.objects.all()
-    paginator = Paginator(sentence_holder, 20)  # Show 5 posts per page
-    page_number = request.GET.get('page')
-    try:
-        page_obj = paginator.get_page(page_number)
-    except PageNotAnInteger:
-        page_obj = paginator.page(1)
-    except EmptyPage:
-        page_obj = paginator.page(paginator.num_pages)
+    # sentence_holder = ParsedSentence.objects.all()
+    # paginator = Paginator(sentence_holder, 20)  # Show 5 posts per page
+    # page_number = request.GET.get('page')
+    # try:
+    #     page_obj = paginator.get_page(page_number)
+    # except PageNotAnInteger:
+    #     page_obj = paginator.page(1)
+    # except EmptyPage:
+    #     page_obj = paginator.page(paginator.num_pages)
 
-    context = {'page_obj': page_obj}
-    return render(request, 'Lingvistik_app/index.html', context)
+    # context = {'page_obj': page_obj}
+    return render(request, 'Lingvistik_app/index.html')
+    # return render(request, 'Lingvistik_app/index.html', context)
 
     
     # text = "Django gør det nemt at integrere spacy."
