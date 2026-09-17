@@ -4,7 +4,7 @@ import spacy
 from spacy import displacy
 import re
 from ....models import ParsedSentence
-from handle_svg import make_svg_responsive
+from .handle_svg import make_svg_responsive
 def get_sentence_context(doc, target_sent):
     
     sentences = list(doc.sents)
@@ -78,8 +78,8 @@ def use_spacy_for_text_processing(text, name_of_work, source, designation, body_
             # Tree sentences
             three_sentences = doc[start_idx:end_idx].text
             #Handle registraion in model 
-            model_doc = nlp_lang(three_sentences)
-            
+            three_sentences_model_doc = nlp_lang(three_sentences)
+            sentences_model_doc = nlp_lang(full_sentence)
             options = {
                "compact": True,      # tighter arcs, smaller overall diagram
                "distance": 90,        # default is ~175; lower = tokens closer together
@@ -87,11 +87,12 @@ def use_spacy_for_text_processing(text, name_of_work, source, designation, body_
                "bg": "#ffffff",
             }
             
-            svg_html = displacy.render(model_doc, style="dep", options=options, page=False)
-            
+            three_sentences_svg_html = displacy.render(three_sentences_model_doc, style="dep", options=options, page=False)
+            sentences_svg_html = displacy.render(sentences_model_doc, style="dep", options=options, page=False)
             
 
-            obj = ParsedSentence.objects.create(findingID=WORKID_SENTNR_LEMMANR,  treesentences=three_sentences, svg_html=make_svg_responsive(svg_html))
+            obj = ParsedSentence.objects.create(findingID=WORKID_SENTNR_LEMMANR, sentence=full_sentence, sentences_svg_html=make_svg_responsive(sentences_svg_html),
+                                                treesentences=three_sentences, treesentences_svg_html=make_svg_responsive(three_sentences_svg_html))
             
             
             # ----------------------------------
