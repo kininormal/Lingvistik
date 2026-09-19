@@ -1,0 +1,9 @@
+.chart-container {
+    max-width: 700px;   /* or 100%, or whatever you want */
+    margin: 0 auto;
+    overflow-x: auto;   /* fallback for very long sentences */
+}
+.chart-container svg {
+    width: 100%;
+    height: auto;
+}

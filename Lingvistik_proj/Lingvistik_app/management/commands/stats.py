@@ -11,7 +11,7 @@ from datasets import load_dataset, get_dataset_config_names, concatenate_dataset
 from ... models import ParsedSentence
 from .statsservices.handle_useing_spacy import use_spacy_for_text_processing
 from .statsservices.handle_corpus_building import handle_gutenberg_corpora_build
-from .statsservices.texthandling import clean_text
+from .statsservices.texthandling import clean_text, remove_filetype
 
 
 class Command(BaseCommand):
@@ -147,12 +147,9 @@ def handle_current_english_work(df, my_gutenberg, work, designation, body_catego
       print(f"PROBLEM: Unknown source: {source}. Skipping work: {name_of_work}")        
       return df  # Skip processing for unknown sources
    #Easy naming of db and data one pr work if needed 
-   chars_in_pattern = ".txt"
-   pattern = f"[{chars_in_pattern}]"
-   
-   current_data_name = re.sub(pattern, "", name_of_work) 
-   data_name = 'data' +  current_data_name
-   #new_data = 'new' + data_name
+   clean_filemname =  remove_filetype(name_of_work, '.txt')
+   data_name = 'data' +   clean_filemname
+
    # ----------------------------------
    # Process text with spaCy
    # ----------------------------------
@@ -193,8 +190,7 @@ def handle_current_english_work(df, my_gutenberg, work, designation, body_catego
       [df, new_data],
       ignore_index=True
    )
-   
-   excel_work_name = re.sub(pattern, "", name_of_work) 
+   excel_work_name =  remove_filetype(name_of_work, '.txt')
    # ----------------------------------
    # Export
    # ----------------------------------

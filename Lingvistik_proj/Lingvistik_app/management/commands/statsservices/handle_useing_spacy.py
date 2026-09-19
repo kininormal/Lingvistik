@@ -5,6 +5,7 @@ from spacy import displacy
 import re
 from ....models import ParsedSentence
 from .handle_svg import make_svg_responsive
+from  .texthandling import remove_filetype
 def get_sentence_context(doc, target_sent):
     
     sentences = list(doc.sents)
@@ -36,16 +37,13 @@ def use_spacy_for_text_processing(text, name_of_work, source, designation, body_
    # New work sentencesNr 0 i work
    #          lemma occurred 0 times
    #-----------------------------------
+   WORKID =  remove_filetype(name_of_work, '.txt') 
    sentenceNr = 0
    lemma_occurrences = 0
    # ----------------------------------
    # Build rows
    # ----------------------------------
-   chars_in_pattern = ".txt"
-   pattern = f"[{chars_in_pattern}]"
-      
-    
-   
+
    data = []
    
    for sent in doc.sents:
@@ -54,15 +52,11 @@ def use_spacy_for_text_processing(text, name_of_work, source, designation, body_
          sentenceNr = sentenceNr + 1
          # Find lemma matching the designation
          if token.lemma_.lower() == designation:
-            #lemma found in  work
-            WORKID =  re.sub(pattern, "", name_of_work) 
-            #number of times lemma found
+            #lemma found in  work number of times lemma found
             lemma_occurrences = lemma_occurrences + 1
          
-            WORKID_SENTNR_LEMMANR = f"{WORKID}_S_{sentenceNr}_L_{lemma_occurrences}"
+            WORKID_SENTNR_LEMMANR = f"{WORKID}_S#{sentenceNr}_L#{lemma_occurrences}"
             
-            
-           
             #Full sentence
             full_sentence = sent.text
             #

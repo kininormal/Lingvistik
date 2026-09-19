@@ -21,3 +21,10 @@ def clean_text(text):
    text = re.sub(r"\s+", " ", text)
   
    return text.strip()
+
+def remove_filetype(full_filename, dot_filetype):
+    chars_in_pattern = dot_filetype
+    pattern = f"[{chars_in_pattern}]"
+
+    clean_file_name = re.sub(pattern, "", full_filename) 
+    return clean_file_name
