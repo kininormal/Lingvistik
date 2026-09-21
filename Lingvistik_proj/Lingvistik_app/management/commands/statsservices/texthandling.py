@@ -28,3 +28,25 @@ def remove_filetype(full_filename, dot_filetype):
 
     clean_file_name = re.sub(pattern, "", full_filename) 
     return clean_file_name
+
+
+def split_literary_text(text):
+    # Splitter teksten op i en liste af sætninger
+    sentences = re.split(r'(?<=[.!?])\s+', text.strip())
+    
+    # Hvis listen er helt tom, returner tomme strenge
+    if not sentences or sentences == ['']:
+        return "", "", ""
+        
+    first = sentences[0]
+    
+    # *middle tager alt mellem første og sidste sætning. 
+    # Hvis der kun er 2 sætninger, bliver middle en tom liste [].
+    # Hvis der kun er 1 sætning, bliver både middle og last tomme.
+    middle_list = sentences[1:-1]
+    last = sentences[-1] if len(sentences) > 1 else ""
+    
+    # Saml midterste sætninger til én streng, hvis der er flere
+    #middle = " ".join(middle_list)
+    
+    return first, last
