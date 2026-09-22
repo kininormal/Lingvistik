@@ -2,6 +2,8 @@ from django.db import models
    
 # Create your models here.
 class ParsedSentence(models.Model):
+   class Meta:
+      ordering = ['findingID']
    findingID = models.TextField()
    sentence =  models.TextField()
    sentence_svg_html = models.TextField() 
