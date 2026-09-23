@@ -44,6 +44,7 @@
          {# note that the list of posts are in the page_obj.object_list not page_obj #}
          <!-- page content  -->
         <div class="row">  <!-- post id  -->
+            <hr> 
             <div class="col-12">
                 <div class="fs-4 fw-semibold text-left roboto pb-2">Sentence id: {{post.findingID}}</div>
             <div>
@@ -53,31 +54,37 @@
                 <div class="fs-5 fw-semibold text-left roboto pb-2">Sentence before lemma</div>
             <div>
         </div>  <!-- end prev sentence text -->   
-         <div class="row">  <!-- before lemma visulazion   -->
-            <div class="col-12">  <!-- <div class="chart-container"> -->
-                {{post.prev_sentence_svg_html|safe}}
+         <div class="row">  <!-- before lemma visualization   -->
+            <div class="col-12">
+                <div class="chart-container">
+                    {{post.prev_sentence_svg_html|safe}}
+                </div>
             </div>
-        </div>   <!-- end before lemma visulazion   -->
+        </div>   <!-- end before lemma visualization   -->
         <div class="row">  <!-- sentence text -->
             <div class="col-12">
                 <div class="fs-5 fw-semibold text-left roboto pb-2">Sentence with lemma</div>
             <div>
         </div>  <!-- end  sentence text -->   
-         <div class="row">  <!-- sentence vizulaization -->
-            <div class="col-12"> <!--<div class="chart-container"> --> 
-                {{post.sentence_svg_html|safe}}
+         <div class="row">  <!-- sentence visualization -->
+            <div class="col-12">
+                <div class="chart-container">
+                    {{post.sentence_svg_html|safe}}
+                </div>
             </div>
-        </div>  <!-- end sentence vizulaization -->
+        </div>  <!-- end sentence visualization -->
         <div class="row">  <!-- follow sentence text -->
             <div class="col-12">
                 <div class="fs-5 fw-semibold text-left roboto pb-2">Sentence after lemma</div>
             <div>
         </div>  <!-- end  sentence text -->  
-        <div class="row">  <!-- follow sentence viz -->
-            <div class="col-12"> <!-- <div class="chart-container"> -->
-                {{post.follow_sentence_svg_html|safe}}
+        <div class="row">  <!-- follow sentence visualization -->
+            <div class="col-12">
+                 <div class="chart-container">
+                    {{post.follow_sentence_svg_html|safe}}
+                 </div>
             </div>   
-        </div><!-- fend ollow sentence viz -->
+        </div><!-- end follow sentence visualization -->
         {% endfor %} <1-- next if exits-->
         <div class="row"> <!-- page bottom page number and navigation  -->
             <div class="col-12">

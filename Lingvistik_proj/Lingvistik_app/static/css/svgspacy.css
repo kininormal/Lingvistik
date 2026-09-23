@@ -1,5 +1,6 @@
 .chart-container {
-    max-width: 700px;   /* or 100%, or whatever you want */
+
+    max-width: 100%;
     margin: 0 auto;
     overflow-x: auto;   /* fallback for very long sentences */
 }
