@@ -13,3 +13,11 @@ class ParsedSentence(models.Model):
    follow_sentence_svg_html  = models.TextField() 
    treesentences = models.TextField()
    treesentences_svg_html = models.TextField()  # just store the raw SVG string
+   
+class SentenceModifier(models.Model):
+   class Meta:
+      ordering = ['findingID']
+   findingID = models.TextField()
+   sentence_position = models.TextField()
+   contains_lemma = models.BooleanField()
+   

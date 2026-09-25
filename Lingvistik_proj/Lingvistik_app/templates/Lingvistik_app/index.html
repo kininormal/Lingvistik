@@ -51,13 +51,29 @@
                 <div class="fs-4 fw-semibold text-left roboto pb-2">Sentence id: {{post.findingID}}</div>
             <div>
         </div>  <!-- end post id  -->       
-        <div class="row">  <!-- post visualization  -->     
-            <div class="col-12"> 
-                <div class="chart-container">
-                    {{post.sentence_svg_html|safe}}
+        <div class="row">
+            <div class="col-12">
+                <div class="svg-toolbar">
+                    <button type="button" class="btn btn-sm btn-outline-secondary zoom-out">
+                        −
+                    </button>
+
+                    <button type="button" class="btn btn-sm btn-outline-secondary zoom-reset">
+                        100%
+                    </button>
+
+                    <button type="button" class="btn btn-sm btn-outline-secondary zoom-in">
+                        +
+                    </button>
+                </div>
+
+                <div class="svg-viewport">
+                    <div class="svg-canvas">
+                        {{ post.sentence_svg_html|safe }}
+                    </div>
                 </div>
             </div>
-        </div>  <!-- end post -visualization -->                    
+        </div>                  
         {% endfor %} <!-- next post if exists-->
         </div> <!-- end page content  -->
         <div class="row"> <!-- page bottom page number and navigation  -->
@@ -75,5 +91,148 @@
             </div>
         </div>  <!--end  page bottom page number and navigation  -->
     </div>
-</div>    
+</div>
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+
+    document.querySelectorAll(".svg-viewport").forEach(function (viewport) {
+
+        const canvas = viewport.querySelector(".svg-canvas");
+
+        let scale = 1;
+        let x = 0;
+        let y = 0;
+
+        let dragging = false;
+        let startX = 0;
+        let startY = 0;
+        let startPanX = 0;
+        let startPanY = 0;
+
+
+        function updateTransform() {
+
+            canvas.style.transform =
+                `translate(${x}px, ${y}px) scale(${scale})`;
+
+        }
+
+
+        // -------------------------
+        // Zoom in
+        // -------------------------
+
+        const zoomIn =
+            viewport.parentElement.querySelector(".zoom-in");
+
+        zoomIn.addEventListener("click", function () {
+
+            scale *= 1.2;
+
+            updateTransform();
+        });
+
+
+        // -------------------------
+        // Zoom out
+        // -------------------------
+
+        const zoomOut =
+            viewport.parentElement.querySelector(".zoom-out");
+
+        zoomOut.addEventListener("click", function () {
+
+            scale /= 1.2;
+
+            if (scale < 0.3) {
+                scale = 0.3;
+            }
+
+            updateTransform();
+        });
+
+
+        // -------------------------
+        // Reset
+        // -------------------------
+
+        const zoomReset =
+            viewport.parentElement.querySelector(".zoom-reset");
+
+        zoomReset.addEventListener("click", function () {
+
+            scale = 1;
+            x = 0;
+            y = 0;
+
+            updateTransform();
+        });
+
+
+        // -------------------------
+        // Start dragging
+        // -------------------------
+
+        viewport.addEventListener("mousedown", function (e) {
+
+            dragging = true;
+
+            viewport.classList.add("dragging");
+
+            startX = e.clientX;
+            startY = e.clientY;
+
+            startPanX = x;
+            startPanY = y;
+
+        });
+
+
+        // -------------------------
+        // Drag
+        // -------------------------
+
+        viewport.addEventListener("mousemove", function (e) {
+
+            if (!dragging) {
+                return;
+            }
+
+            x = startPanX + (e.clientX - startX);
+            y = startPanY + (e.clientY - startY);
+
+            updateTransform();
+
+        });
+
+
+        // -------------------------
+        // Stop dragging
+        // -------------------------
+
+        viewport.addEventListener("mouseup", function () {
+
+            dragging = false;
+
+            viewport.classList.remove("dragging");
+
+        });
+
+
+        viewport.addEventListener("mouseleave", function () {
+
+            dragging = false;
+
+            viewport.classList.remove("dragging");
+
+        });
+
+
+        // Initial position
+        updateTransform();
+
+    });
+
+});
+</script>    
 {% endblock content %}

@@ -12,7 +12,7 @@ from ... models import ParsedSentence
 from .statsservices.handle_useing_spacy import use_spacy_for_text_processing
 from .statsservices.handle_corpus_building import handle_gutenberg_corpora_build
 from .statsservices.texthandling import clean_text, remove_filetype
-
+from .statsservices.meaning import handle_words_modifying_meaning
 
 class Command(BaseCommand):
 
@@ -43,7 +43,6 @@ class Command(BaseCommand):
       
      
       for part in list_of_names[:1]: #test with only two works for now -with two body names head and foot
-        
          designation = part[0]
          body_category = part[1]
          #for every designation and body_category create a new language_df with english and danish data
@@ -53,11 +52,16 @@ class Command(BaseCommand):
         
       print('Language df after registration -  ONLY ENGLISH ONLY two works SO FAR:')
       rows, columns = language_df.shape
-      print(f"Rows in main function:  {rows}")
-      print("First rows in main function:")
-      print( language_df.head())
-      print("Last rows in main function:")
-      print( language_df.tail())
+      print(f"Rows of dataframe in main function ought to contain ALL the sentences  (ALL works):  {rows}")
+      # print("First rows in main function:")
+      # print( language_df.head())
+      # print("Last rows in main function:")
+      # print( language_df.tail())
+      #Register potential meaning modifiers
+      objects_in_database = ParsedSentence.objects.all()
+      handle_words_modifying_meaning(objects_in_database)
+      
+     
          
       self.stdout.write(self.style.SUCCESS('Successfully updated language data - just initial start.'))
 def  update_english_data(df, designation, body_category, language, nlp_lang): #LOOK at 'clean up' lang is here but then set later in work loop - should be set in function and not in loop - but for now it is set in loop
@@ -71,20 +75,12 @@ def  update_english_data(df, designation, body_category, language, nlp_lang): #L
    
    print("number of works before handle_current_english_work: ", len(works))
    #loop though works and process each work   
-   for work in works[:3]: #TEST WITH ONE WORK
-   
+   for work in works[:3]: #TEST 
       # ----------------------------------
       # Build basis for English language data for current work
       # ----------------------------------
       df = handle_current_english_work(df,my_gutenberg, work, designation, body_category, nlp_lang)
-      #fileid source and language  are knowen in work
-    
-      
-   
-   #export to excel
-   rows, columns = df.shape
-   print(f"Rows in function for english ALL handled works:  {rows}")
-   print("English language data updated!")
+
    return df
 def update_danish_data(df,  designation, body_category, lang):
    print("Starting to update Danish language data...")

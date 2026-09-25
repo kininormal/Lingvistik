@@ -71,18 +71,10 @@ def use_spacy_for_text_processing(text, name_of_work, source, designation, body_
             end_idx = sent[-1].doc[sent.end].sent.end if sent.end < len(doc) else len(doc)
             # Tree sentences
             three_sentences = doc[start_idx:end_idx].text
-            #test better visualizon
-      
-            
-   
-         
+            #split three_sentences in  prev_sentence (we have lemma sentence in full_sentence) and follow__sentence
 
             prev_sentence, follow__sentence = split_literary_text(three_sentences)
 
-          
-           
-         
-            
             #Handle registraion in model 
             three_sentences_model_doc = nlp_lang(three_sentences)
             prev_sentence_model_doc = nlp_lang(prev_sentence)
@@ -96,19 +88,19 @@ def use_spacy_for_text_processing(text, name_of_work, source, designation, body_
             }
             
             three_sentences_svg_html = displacy.render(three_sentences_model_doc, style="dep", options=options, page=False)
-            prev_sentence_svg_html = displacy.render(prev_sentence_model_doc, style="dep", options=, page=False) 
+            prev_sentence_svg_html = displacy.render(prev_sentence_model_doc, style="dep", options=options, page=False) 
             sentences_svg_html = displacy.render(sentences_model_doc, style="dep", options=options, page=False) 
             follow_sentence_svg_html = displacy.render(follow_sentences_model_doc, style="dep", options=options, page=False)
-
+            #save raw svg in database
             obj = ParsedSentence.objects.create(findingID=WORKID_SENTNR_LEMMANR, 
                                                 sentence=full_sentence, 
-                                                sentence_svg_html= make_svg_responsive(sentences_svg_html),
+                                                sentence_svg_html= sentences_svg_html,
                                                 prev_sentence = prev_sentence,
-                                                prev_sentence_svg_html = make_svg_responsive(prev_sentence_svg_html), 
+                                                prev_sentence_svg_html = prev_sentence_svg_html, 
                                                 follow_sentence = follow__sentence,
-                                                follow_sentence_svg_html = make_svg_responsive(follow_sentence_svg_html),
+                                                follow_sentence_svg_html = follow_sentence_svg_html,
                                                 treesentences = three_sentences, 
-                                                treesentences_svg_html = make_svg_responsive(three_sentences_svg_html))
+                                                treesentences_svg_html = three_sentences_svg_html) # make responsive removed
             
             
             # ----------------------------------

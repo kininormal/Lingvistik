@@ -3,6 +3,7 @@ from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 import spacy
 from spacy import displacy
 from . models import ParsedSentence
+from .management.commands.statsservices.handle_svg import prepare_svg
 
 # Indlæs modellen én gang (globalt i filen for bedre ydeevne)
 nlp_en = spacy.load("en_core_web_sm")
@@ -19,7 +20,11 @@ def index(request):
         page_obj = paginator.page(1)
     except EmptyPage:
         page_obj = paginator.page(paginator.num_pages)
-
+    
+    for sentence in page_obj.object_list:
+        sentence.sentence_svg_html = prepare_svg(
+        sentence.sentence_svg_html)
+   
     context = {'page_obj': page_obj}
     
     return render(request, 'Lingvistik_app/index.html', context)
@@ -34,6 +39,14 @@ def prevfollow(request):
         page_obj = paginator.page(1)
     except EmptyPage:
         page_obj = paginator.page(paginator.num_pages)
+        
+    for sentence in page_obj.object_list:
+            sentence.prev_sentence_svg_html = prepare_svg(
+                sentence.prev_sentence_svg_html)
+            sentence.sentence_svg_html = prepare_svg(
+                sentence.sentence_svg_html)
+            sentence.follow_sentence_svg_html = prepare_svg(
+                sentence.follow_sentence_svg_html)
     
     context = {'page_obj': page_obj}
     
@@ -49,6 +62,10 @@ def treesentences(request):
     except EmptyPage:
         page_obj = paginator.page(paginator.num_pages)
     
+    for sentence in page_obj.object_list:
+        sentence.treesentences_svg_html = prepare_svg(
+            sentence.treesentences_svg_html)
+       
     context = {'page_obj': page_obj}
     
     return render(request, 'Lingvistik_app/treesentences.html', context)
