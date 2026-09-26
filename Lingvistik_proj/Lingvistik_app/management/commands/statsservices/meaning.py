@@ -1,10 +1,65 @@
 
+class LemmaSentence:
+   def __init__(self, lemmasentence, sentenceid):
+        self.name = 'Lemma sentence'
+        self.sentence = lemmasentence
+        self.sentenceID = sentenceid
+        self.is_lemma_present = True
+
+   def get_sentence(self):
+      return self.sentence 
+   def get_sentenceID(self):
+      return self.sentenceid
+    
+   def has_lemma(self):
+      return self.is_lemma_present
+      
+   def info(self):
+      print("Contains:", self.name)
+
+class PreviousSentence: 
+   def __init__(self, previoussentence, lemma_sentence_obj):
+      self.name = 'Previous sentence'
+      self.sentence = previoussentence
+      self.lemma_sentence_ref = lemma_sentence_obj  # Reference til LemmaSentence-objektet
+      self.is_lemma_present = None
+
+   def get_parent_sentence(self):
+      return self.lemma_sentence_ref.get_sentence()
+   def get_sentenceID(self):
+      return self.lemma_sentence_ref.get_sentenceID()
+     
+class FollowingSentence:
+   def __init__(self, followingsentence, lemma_sentence_obj):
+      self.name = 'Previous sentence'
+      self.sentence = followingsentence
+      self.lemma_sentence_ref = lemma_sentence_obj  # Reference til LemmaSentence-objektet
+      self.is_lemma_present = None
+
+   def get_parent_sentence(self):
+      return self.lemma_sentence_ref.get_sentence()
+   def get_sentenceID(self):
+      return self.lemma_sentence_ref.get_sentenceID()
+
+
+
+
+
+
 def handle_words_modifying_meaning(database_objects):
    num_objects_in_database = len(database_objects)
    print(f"Database ParsedSentence ought to contain ALL the sentences  (ALL works) n in dataframe : {num_objects_in_database}")
    
    for database_object in database_objects:
-      lemma_sentence_id = database_object.findingID
-      prev_sentence = database_object.prev_sentence
-      lemma_sentence = database_object.sentence
-      follow_sentence = database_object.follow_sentence
+      lemma_obj = LemmaSentence(database_object.sentence, database_object.findingID)
+      prev_obj = PreviousSentence(database_object.prev_sentence, lemma_obj)
+      follow_obj = FollowingSentence(database_object.follow_sentence,lemma_obj)
+      #1)
+      #a check if prev_obj and follow_obj contains lemma set is lemma present accodinly
+      #b regiser words  word class adjektives and adverbies in lemma_obj, prev_obj, and follow_obj (signed distance to lemma in lemma_obj)
+      #c register to model
+      
+      #2) check meaning modifires -> See Claude AI
+      #a check if prev_obj and follow_obj contains lemma set is lemma present accodinly
+      #b regiser  meaning modififiewrs class of modifier   and their distance to lemma with sign 
+      #c register to model
