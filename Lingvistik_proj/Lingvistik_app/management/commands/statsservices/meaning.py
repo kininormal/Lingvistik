@@ -1,11 +1,13 @@
 
 class LemmaSentence:
-   def __init__(self, lemmasentence, sentenceid):
+   def __init__(self, lemma, lemmasentence, sentenceid):
         self.name = 'Lemma sentence'
+        self.lemma = lemma
         self.sentence = lemmasentence
         self.sentenceID = sentenceid
         self.is_lemma_present = True
-
+   def get_lemma(self):
+      return self.lemma
    def get_sentence(self):
       return self.sentence 
    def get_sentenceID(self):
@@ -32,6 +34,8 @@ class PreviousSentence:
       return self.lemma_sentence_ref.get_sentence()
    def get_sentenceID(self):
       return self.lemma_sentence_ref.get_sentenceID()
+   def get_lemma(self): #get_parent_lemma????
+      return self.lemma_sentence_ref.get_lemma()
      
 class FollowingSentence:
    def __init__(self, followingsentence, lemma_sentence_obj):
@@ -50,6 +54,8 @@ class FollowingSentence:
       return self.lemma_sentence_ref.get_sentence()
    def get_sentenceID(self):
       return self.lemma_sentence_ref.get_sentenceID()
+   def get_lemma(self): #get_parent_lemma????
+         return self.lemma_sentence_ref.get_lemma()
 
 #Version 2 noter 
 # class BaseSentence:
@@ -96,7 +102,7 @@ def handle_words_modifying_meaning(database_objects):
    print(f"Database ParsedSentence ought to contain ALL the sentences  (ALL works) n in dataframe : {num_objects_in_database}")
    
    for database_object in database_objects:
-      lemma_obj = LemmaSentence(database_object.sentence, database_object.findingID)
+      lemma_obj = LemmaSentence(database_object.lemma, database_object.sentence, database_object.findingID)
       prev_obj = PreviousSentence(database_object.prev_sentence, lemma_obj)
       follow_obj = FollowingSentence(database_object.follow_sentence,lemma_obj)
       #1)

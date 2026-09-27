@@ -86,21 +86,22 @@ def use_spacy_for_text_processing(text, name_of_work, source, designation, body_
                "font": "Arial",
                "bg": "#ffffff",
             }
-            
+            #save raw svg in model/database
             three_sentences_svg_html = displacy.render(three_sentences_model_doc, style="dep", options=options, page=False)
             prev_sentence_svg_html = displacy.render(prev_sentence_model_doc, style="dep", options=options, page=False) 
             sentences_svg_html = displacy.render(sentences_model_doc, style="dep", options=options, page=False) 
             follow_sentence_svg_html = displacy.render(follow_sentences_model_doc, style="dep", options=options, page=False)
             #save raw svg in database
-            obj = ParsedSentence.objects.create(findingID=WORKID_SENTNR_LEMMANR, 
-                                                sentence=full_sentence, 
+            obj = ParsedSentence.objects.create(findingID = WORKID_SENTNR_LEMMANR,
+                                                lemma = designation,
+                                                sentence = full_sentence, 
                                                 sentence_svg_html= sentences_svg_html,
                                                 prev_sentence = prev_sentence,
                                                 prev_sentence_svg_html = prev_sentence_svg_html, 
                                                 follow_sentence = follow__sentence,
                                                 follow_sentence_svg_html = follow_sentence_svg_html,
                                                 treesentences = three_sentences, 
-                                                treesentences_svg_html = three_sentences_svg_html) # make responsive removed
+                                                treesentences_svg_html = three_sentences_svg_html)
             
             
             # ----------------------------------

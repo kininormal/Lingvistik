@@ -4,7 +4,9 @@ from django.db import models
 class ParsedSentence(models.Model):
    class Meta:
       ordering = ['findingID']
+   
    findingID = models.TextField()
+   lemma = models.TextField()
    sentence =  models.TextField()
    sentence_svg_html = models.TextField() 
    prev_sentence = models.TextField() 
