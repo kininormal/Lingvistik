@@ -40,6 +40,8 @@ def use_spacy_for_text_processing(text, name_of_work, source, designation, body_
    WORKID =  remove_filetype(name_of_work, '.txt') 
    sentenceNr = 0
    lemma_occurrences = 0
+   #ensure that designation is lower case
+   designation = designation.lower()
    # ----------------------------------
    # Build rows
    # ----------------------------------
@@ -220,6 +222,93 @@ def use_spacy_for_text_processing(text, name_of_work, source, designation, body_
    return data
 
 
+def apply_object_values(sentence_obj,  nlp_lang):
+   
+   
+   text = sentence_obj.get_sentence()
+   lemma = sentence_obj.get_lemma()
+   is_lemma_present = False
+   nlp_lang.max_length = max(nlp_lang.max_length, len(text) + 1)
+   #ensure lower case of lemma
+   lemma = lemma.lower()
+   doc = nlp_lang(text)
+   is_lemma_present = False
+   positionList = []
+   
+   for sent in doc.sents:
+      words_in_sentence = len(sent)
+      for token in sent:
+         # Find lemma matching the designation
+         if token.lemma_.lower() == lemma:
+            position = token.i
+            positionList.append(position)
+            is_lemma_present = True
+   
+   
+   sentence_obj.set_words_in_sentence(words_in_sentence)
+   if  sentence_obj.name != 'Lemma sentence':
+      sentence_obj.set_lemma_present(is_lemma_present)
+      sentence_obj.set_lemmapositionlist(positionList)
+   else: 
+     sentence_obj.set_lemmapositionlist(positionList)       
+   return sentence_obj
+
+class Gramma:
+   def __init__(self):
+      self.gamma_cat = None
+      self.word = None
+      self.position = None
+   def set_gramma_cat(self, gramma_cat):
+      self.gamma_cat = gramma_cat
+   def get_gramma_cat(self, gramma_cat):
+      return self.gamma_cat
+   def set_word(self, word):
+      self.word = word
+   def get_word(self):
+      return  self.word
+   def set_position(self, position):
+      self.position = position
+   def get_position(self, position):
+      return self.position 
+      
+def gramma_in_sentence(sentence, nlp_lang):
+   #allow very long sentences
+   nlp_lang.max_length = max(nlp_lang.max_length, len(sentence) + 1)
+   doc = nlp_lang(sentence)
+   adjList = []
+   verbList = []
+   advList = []
+   for sent in doc.sents:
+      # ----------------------------------
+      # Loop through tokens in sentence
+      # ----------------------------------
+      for token in sent:
+         if token.pos_ == "ADJ":
+            gramma_obj = Gramma()
+            gramma_obj.set_word(token)
+            gramma_obj.set_gramma_cat(token.pos_)
+            gramma_obj.set_position(token.i)
+            
+            adjList.append(gramma_obj)
+         if token.pos_ == "VERB":
+            gramma_obj = Gramma()
+            gramma_obj.set_word(token)
+            gramma_obj.set_gramma_cat(token.pos_)
+            gramma_obj.set_position(token.i)
+                       
+            verbList.append(gramma_obj)
+         if token.pos_ == "ADV":
+            gramma_obj = Gramma()
+            gramma_obj.set_word(token)
+            gramma_obj.set_gramma_cat(token.pos_)
+            gramma_obj.set_position(token.i)
+           
+            advList.append(gramma_obj)
+   return adjList, verbList, advList
+            
+   
+                
+   
 
 
 

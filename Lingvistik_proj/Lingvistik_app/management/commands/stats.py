@@ -12,7 +12,7 @@ from ... models import ParsedSentence
 from .statsservices.handle_useing_spacy import use_spacy_for_text_processing
 from .statsservices.handle_corpus_building import handle_gutenberg_corpora_build
 from .statsservices.texthandling import clean_text, remove_filetype
-from .statsservices.meaning import handle_words_modifying_meaning
+from .statsservices.meaning import apply_values_to_sentences
 
 class Command(BaseCommand):
 
@@ -59,7 +59,7 @@ class Command(BaseCommand):
       # print( language_df.tail())
       #Register potential meaning modifiers
       objects_in_database = ParsedSentence.objects.all()
-      handle_words_modifying_meaning(objects_in_database)
+      apply_values_to_sentences(objects_in_database, nlp_en)
       
      
          
