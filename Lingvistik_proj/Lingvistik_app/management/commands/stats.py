@@ -60,8 +60,7 @@ class Command(BaseCommand):
       #Register potential meaning modifiers
       objects_in_database = ParsedSentence.objects.all()
       apply_values_to_sentences(objects_in_database, nlp_en)
-      
-     
+
          
       self.stdout.write(self.style.SUCCESS('Successfully updated language data - just initial start.'))
 def  update_english_data(df, designation, body_category, language, nlp_lang): #LOOK at 'clean up' lang is here but then set later in work loop - should be set in function and not in loop - but for now it is set in loop

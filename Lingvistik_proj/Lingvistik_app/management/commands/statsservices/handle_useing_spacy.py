@@ -246,29 +246,28 @@ def apply_object_values(sentence_obj,  nlp_lang):
    
    
    sentence_obj.set_words_in_sentence(words_in_sentence)
+   sentence_obj.set_lemmapositionlist(positionList)
    if  sentence_obj.name != 'Lemma sentence':
       sentence_obj.set_lemma_present(is_lemma_present)
-      sentence_obj.set_lemmapositionlist(positionList)
-   else: 
-     sentence_obj.set_lemmapositionlist(positionList)       
+        
    return sentence_obj
 
 class Gramma:
    def __init__(self):
-      self.gamma_cat = None
+      self.gramma_cat = None
       self.word = None
       self.position = None
    def set_gramma_cat(self, gramma_cat):
       self.gamma_cat = gramma_cat
-   def get_gramma_cat(self, gramma_cat):
-      return self.gamma_cat
+   def get_gramma_cat(self):
+      return self.gramma_cat
    def set_word(self, word):
       self.word = word
    def get_word(self):
       return  self.word
    def set_position(self, position):
       self.position = position
-   def get_position(self, position):
+   def get_position(self):
       return self.position 
       
 def gramma_in_sentence(sentence, nlp_lang):

@@ -23,3 +23,8 @@ class SentenceModifier(models.Model):
    sentence_position = models.TextField()
    contains_lemma = models.BooleanField()
    
+class SentenceGramma(models.Model):
+   class Meta:
+      ordering = ['findingID']
+      
+   findingID = models.TextField()
