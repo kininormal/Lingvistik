@@ -139,6 +139,20 @@ class FollowingSentence:
       return self.lemma_sentence_ref.get_sentenceID()
    def get_lemma(self): #get_parent_lemma????
          return self.lemma_sentence_ref.get_lemma()
+   
+class LemmaGrammaContext:
+   def __init__(self, lemma_sentence_gramma_obj, previous_sentence_gramma_obj, following_sentence_gramma_obj ):
+      self.name = 'Lemma Gramma Context'
+      self.lemma_sentence_gramma = lemma_sentence_gramma_obj
+      self.previous_sentence_gramma = previous_sentence_gramma_obj
+      self.following_sentence_gramma = following_sentence_gramma_obj
+   def get_lemma_sentence_gramma_objects(self):
+      return self.lemma_sentence_gramma
+   def get_previous_sentence_gramma_objects(self):
+      return self.previous_sentence_gramma
+   def get_following_sentence_gramma_objects(self):
+      return self.following_sentence_gramma
+            
 
 #Version 2 noter 
 # class BaseSentence:
@@ -181,6 +195,9 @@ def apply_values_to_sentences(database_objects, nlp_lang):
    num_objects_in_database = len(database_objects)
    print(f"Database ParsedSentence ought to contain ALL the sentences  (ALL works) n in dataframe : {num_objects_in_database}")
    
+   lemmagrammacontex_obj_List = []
+   
+
    for database_object in database_objects:
       lemma_obj = LemmaSentence(database_object.lemma, database_object.sentence, database_object.findingID)
       prev_obj = PreviousSentence(database_object.prev_sentence, lemma_obj)
@@ -225,9 +242,9 @@ def apply_values_to_sentences(database_objects, nlp_lang):
       #the  ObjList contains class Gramma with access to word (get_word), position (get_position) and spacy notation of word class (get_gramma_class)
       lemma_obj_adjObjList, lemma_obj_verbObjList, lemma_obj_advOjbList = gramma_in_sentence(lemma_obj.get_sentence(), nlp_lang)
       #add gramma info
-      print("Number of adjektive objects in lemma ", len(lemma_obj_adjObjList) )
-      print("Number of verb objects in lemma ", len(lemma_obj_verbObjList) )
-      print("Number of adverb objects in lemma ", len(lemma_obj_advOjbList) )
+      # print("Number of adjektive objects in lemma ", len(lemma_obj_adjObjList) )
+      # print("Number of verb objects in lemma ", len(lemma_obj_verbObjList) )
+      # print("Number of adverb objects in lemma ", len(lemma_obj_advOjbList) )
       
       print("APPLY Gamma info")
       lemma_obj.set_adjektive_obj_lst(lemma_obj_adjObjList)
@@ -248,25 +265,32 @@ def apply_values_to_sentences(database_objects, nlp_lang):
       
       adj_gramma_objList = follow_obj.get_adjektive_obj_lst()
       for adjObj in adj_gramma_objList:
-                  word = adjObj.get_word()
-                  position = adjObj.get_position()
-                  print(f"Follow sentence had verb {word}  at position {position}")
+         word = adjObj.get_word()
+         position = adjObj.get_position()
+         #print(f"Follow sentence had verb {word}  at position {position}")
       
       verb_gramma_objList = follow_obj.get_verb_obj_lst()
       for verbObj in verb_gramma_objList:
-            word =  verbObj.get_word()
-            position = verbObj.get_position()
-            print(f"Follow sentence had verb {word}  at position {position}")
+         word =  verbObj.get_word()
+         position = verbObj.get_position()
+         # print(f"Follow sentence had verb {word}  at position {position}")
       
       adverb_gramma_objList = follow_obj.get_adverb_obj_lst()
       for adverbObj in   adverb_gramma_objList:
          word =  adverbObj.get_word()
          position = adverbObj.get_position()
-         print(f"Follow sentence had adverb {word}  at position {position}")
+         # print(f"Follow sentence had adverb {word}  at position {position}")
+         #register gramma of lemma sentence, previous and following sentence in context
+      
+      #Add lemma cotext for current
+      lemmagrammacontex_obj = LemmaGrammaContext(lemma_obj, prev_obj, follow_obj)
+      #Add current to list
+      print("Adding to gramma context")
+      lemmagrammacontex_obj_List.append(lemmagrammacontex_obj)
        
       
       
-      
+   return lemmagrammacontex_obj_List  
       
       
       

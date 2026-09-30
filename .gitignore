@@ -2,5 +2,9 @@
 Lingvistik_env/*
 # 2. Ignorer alt i Lingvistik\corpora\gutenberg mappen
 Lingvistik/corpora/gutenberg/*
-# 3. Ignorer exel filen i Lingvistik_proj mappen indtil størrelse er set
+# 3. Ignorer exel filer i Lingvistik_proj mappen
 Lingvistik/Lingvistik_proj/*.xlsx
+# 3. Ignorer createddata
+Lingvistik_proj/createddata/objects/
+# 3. Ignorer data objects
+#Lingvistik/Lingvistik_proj/

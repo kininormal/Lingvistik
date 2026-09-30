@@ -53,15 +53,7 @@ class Command(BaseCommand):
       print('Language df after registration -  ONLY ENGLISH ONLY two works SO FAR:')
       rows, columns = language_df.shape
       print(f"Rows of dataframe in main function ought to contain ALL the sentences  (ALL works):  {rows}")
-      # print("First rows in main function:")
-      # print( language_df.head())
-      # print("Last rows in main function:")
-      # print( language_df.tail())
-      #Register potential meaning modifiers
-      objects_in_database = ParsedSentence.objects.all()
-      apply_values_to_sentences(objects_in_database, nlp_en)
-
-         
+     
       self.stdout.write(self.style.SUCCESS('Successfully updated language data - just initial start.'))
 def  update_english_data(df, designation, body_category, language, nlp_lang): #LOOK at 'clean up' lang is here but then set later in work loop - should be set in function and not in loop - but for now it is set in loop
 
