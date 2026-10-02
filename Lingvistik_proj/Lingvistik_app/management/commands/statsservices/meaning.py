@@ -1,6 +1,6 @@
 
 from .handle_useing_spacy import apply_object_values, gramma_in_sentence
-
+from ....models import ParsedSentence, WordsInSentenceInfo, Sentence
 
 class LemmaSentence:
    def __init__(self, lemma, lemmasentence, sentenceid):
@@ -250,6 +250,16 @@ def apply_values_to_sentences(database_objects, nlp_lang):
       lemma_obj.set_adjektive_obj_lst(lemma_obj_adjObjList)
       lemma_obj.set_verb_obj_lst(lemma_obj_verbObjList)
       lemma_obj.set_adverb_obj_lst(lemma_obj_advOjbList)
+      
+      #First check of model 
+      lemma_sentence_ID =lemma_obj.get_sentenceID()
+      sentence = lemma_obj.get_sentence()
+      wordsinsentence = lemma_obj.get_words_in_sentence()
+      modelobj =  Sentence.objects.create(findingID = lemma_sentence_ID,
+                                          sentence_type = 'lemmasentence', 
+                                          sentence = sentence,
+                                          wordsinsentence = wordsinsentence)
+     
     
       
       prev_obj_adjObjList , prev_obj_verbObjList, prev_obj_advOjbList = gramma_in_sentence( prev_obj.get_sentence(), nlp_lang)
