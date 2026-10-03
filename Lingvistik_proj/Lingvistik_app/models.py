@@ -17,22 +17,31 @@ class ParsedSentence(models.Model):
    treesentences_svg_html = models.TextField()  # just store the raw SVG string
    
    
-class Sentence(models.Model): #leme sentenced and the previous and following sentences are stored in this model, and the words in the sentence are stored in the WordsInSentenceInfo model
+class Sentence(models.Model): #leme sentenced and the previous and following sentences are stored in this model, and the words are in Words
    class Meta:
       ordering = ['findingID']
    findingID = models.TextField()   
    SENTENCE_TYPE = [
       ('previous', 'Previous'),
       ('lemmasentence', 'Lemma Sentence'),
-      ('followingsentence',   'Following Sentence'),   
+      ('followingsentence',   'Following Sentence'), 
+      ('other', 'Other'),  
    ]
+   CONTAINS_LEMMA_CHOICES = [
+      ('True', 'Contains Lemma'),  
+      ('False', 'Does Not Contain Lemma'),
+      ('Unknown', 'Unknown'),
+   ]
+   #use contains not has_ or is_ as not BooleanField, because it is possible that the sentence does not contain a lemma, but it is not known if it contains a lemma or not, so it is better to use a CharField with choices
+   contains_lemma = models.CharField(
+      max_length=10,  null=False, choices=CONTAINS_LEMMA_CHOICES, default='Unknown') #ensure need to register if the sentence contains a lemma, so that it is possible to distinguish between the different types of sentences in the database
    sentence_type = models.CharField(
-      max_length=20,  null=False, choices=SENTENCE_TYPE, default='lemmasentence')
+      max_length=20,  null=False, choices=SENTENCE_TYPE, default='other') #ensure need to register the sentence type, so that it is possible to distinguish between the different types of sentences in the database
    sentence = models.TextField()
    wordsinsentence = models.IntegerField()
 
 class Word(models.Model): # check sentiment analysis, if it is possible to use the sentiment analysis to get the word class, and if it is possible to use the sentiment analysis to get the word position
-
+   
    WORDCLASS_CHOICES = [
       #spacy abbreviations: https://spacy.io/api/annotation#pos-tagging
       ('NOUN', 'Noun'), #not used yet
@@ -59,8 +68,7 @@ class Word(models.Model): # check sentiment analysis, if it is possible to use t
     )
    
 class Lemma(models.Model): #lemma is the word in the sentence that is the focus of the analysis, and the sentence is the sentence containing the lemma
-
-   findingID = models.TextField()
+   
    lemma = models.CharField(max_length=250) #even Iceland, Welch or Duch has no words with more than 100 characters, so I increased the max_length to 250
    lemma_position = models.IntegerField()
    
@@ -70,20 +78,9 @@ class Lemma(models.Model): #lemma is the word in the sentence that is the focus 
         related_name="lemmas"
     )
 
-class SentenceModifier(models.Model):
-   class Meta:
-      ordering = ['findingID']
-   findingID = models.TextField()
-   sentence_position = models.TextField()
-   contains_lemma = models.BooleanField()
 
-class WordsInSentenceInfo(models.Model):
-   class Meta:
-      ordering = ['findingID']
-   findingID = models.TextField()
-   word =  models.TextField()
-   wordclass =  models.TextField()
-   wordposition = models.IntegerField()
+   
+
 
 
 # class WordClass(models.Model):
