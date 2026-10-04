@@ -1,6 +1,6 @@
 
 from .handle_useing_spacy import apply_object_values, gramma_in_sentence
-from ....models import Sentence
+
 
 class LemmaSentence:
    def __init__(self, lemma, lemmasentence, sentenceid):
@@ -38,7 +38,7 @@ class LemmaSentence:
    def get_sentence(self):
       return self.sentence 
    def get_sentenceID(self):
-      return self.sentenceid
+      return self.sentenceID
    def set_lemmapositionlist(self, lemmapositionlist):
       self.lemmapositionList = lemmapositionlist
    def get_lemmapositionlist(self):
@@ -194,11 +194,7 @@ class LemmaGrammaContext:
 def apply_values_to_sentences(database_objects, nlp_lang):
    num_objects_in_database = len(database_objects)
    print(f"Database ParsedSentence ought to contain ALL the sentences  (ALL works) n in dataframe : {num_objects_in_database}")
-   #TEST FASE - START BY empy records thats visualizes sentenses
-   Sentence.objects.all().delete()
-   #check
-   records = Sentence.objects.all()
-   print("Number of Sentence records from litere works are  initilized to: ", len(records) )
+  
    
    
    lemmagrammacontex_obj_List = []
@@ -261,11 +257,11 @@ def apply_values_to_sentences(database_objects, nlp_lang):
       # lemma_sentence_ID =lemma_obj.get_sentenceID()
       # sentence = lemma_obj.get_sentence()
       # wordsinsentence = lemma_obj.get_words_in_sentence()
-      # modelobj =  Sentence.objects.create(findingID = lemma_sentence_ID,
+      # nsentence)modelobj =  Sentence.objects.create(findingID = lemma_sentence_ID,
       #                                     sentence_type = 'lemmasentence',
-      #                                     contains_lemma = True, 
+      #                                     contains_lemma = 'True', 
       #                                     sentence = sentence,
-      #                                     wordsinsentence = wordsinsentence)
+      #                                     wordsinsentence = wordsi
      
     
       
