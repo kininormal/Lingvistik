@@ -71,6 +71,18 @@ class WordObjectForAnalysis(models.Model): # check sentiment analysis, if it is 
         on_delete=models.CASCADE, 
         related_name="words"
     )
+   #@property
+   def grafical_X_position(self):
+      return self.position
+   
+   #@property
+   def grafical_Y_position(self):
+      mapping = {
+         'lemma_sentence': 0,
+         'previous_sentence': -1,
+         'following_sentence': 1,
+      }
+      return mapping.get(self.sentence.sentence_type, 0)
    
  
 class LemmaObjectForAnalysis(models.Model): #lemma is the word in the sentence that is the focus of the analysis, and the sentence is the sentence containing the lemma
@@ -83,75 +95,15 @@ class LemmaObjectForAnalysis(models.Model): #lemma is the word in the sentence t
         on_delete=models.CASCADE,
         related_name="lemmas"
     )
+   @property
+   def grafical_X_position(self):
+      return self.lemma_position
 
-   
-   
-# class Sentence(models.Model): #lemma sentenced and the previous and following sentences are stored in this model, and the words are in Words
-#    class Meta:
-#       ordering = ['findingID']
-#    findingID = models.TextField()   
-#    SENTENCE_TYPE = [
-#       ('previous', 'Previous'),
-#       ('lemmasentence', 'Lemma Sentence'),
-#       ('followingsentence',   'Following Sentence'), 
-#       ('other', 'Other'),  
-#    ]
-#    CONTAINS_LEMMA_STATUS = [
-#       ('True', 'Contains Lemma'),  
-#       ('False', 'Does Not Contain Lemma'),
-#       ('Unknown', 'Unknown'),
-#    ]
-#    #use contains not has_ or is_ as not BooleanField, because it is possible that the sentence does not contain a lemma, but it is not known if it contains a lemma or not, so it is better to use a CharField with choices
-#    contains_lemma = models.CharField(
-#       max_length=10,  null=False, choices=CONTAINS_LEMMA_CHOICES, default='Unknown') #ensure need to register if the sentence contains a lemma, so that it is possible to distinguish between the different types of sentences in the database
-#    sentence_type = models.CharField(
-#       max_length=20,  null=False, choices=SENTENCE_TYPE, default='other') #ensure need to register the sentence type, so that it is possible to distinguish between the different types of sentences in the database
-#    sentence = models.TextField()
-#    words_in_sentence = models.IntegerField()
-
-
-   
-
-
-
-# class WordClass(models.Model):
-#     navn = models.CharField(max_length=50, unique=True)  # fx "Tillægsord"
-
-#     class Meta:
-#         verbose_name_plural = "Word classes"
-
-#     def __str__(self):
-#         return self.navn
-
-
-# class Position(models.Model):
-#     name = models.CharField(max_length=50, unique=True)  # fx "Subjekt", "Forfelt"
-
-#     class Meta:
-#         verbose_name_plural = "Positions"
-
-#     def __str__(self):
-#         return self.navn
-
-
-# class IdentifiedWords(models.Model):
-#     word = models.CharField(max_length=100)  # fx "hurtig"
-    
-#     # Ét ord har én ordklasse i denne kontekst
-#     wordclass = models.ForeignKey(
-#         WordClass, 
-#         on_delete=models.CASCADE, 
-#         related_name="word"
-#     )
-    
-#     # Ét ord kan optræde i FLERE positioner
-#     positioner = models.ManyToManyField(
-#         Position, 
-#         related_name="identified_words"
-#     )
-
-#     class Meta:
-#         verbose_name_plural = "Identified words"
-
-#     def __str__(self):
-#         return f"{self.ord} ({self.ordklasse})"
+   @property
+   def grafical_Y_position(self):
+      mapping = {
+         'lemma_sentence': 0,
+         'previous_sentence': -1,
+         'following_sentence': 1,
+      }
+      return mapping.get(self.sentence.sentence_type, 0)

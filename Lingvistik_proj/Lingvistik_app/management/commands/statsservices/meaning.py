@@ -243,27 +243,13 @@ def apply_values_to_sentences(database_objects, nlp_lang):
       
       #the  ObjList contains class Gramma with access to word (get_word), position (get_position) and spacy notation of word class (get_gramma_class)
       lemma_obj_adjObjList, lemma_obj_verbObjList, lemma_obj_advOjbList = gramma_in_sentence(lemma_obj.get_sentence(), nlp_lang)
-      #add gramma info
-      # print("Number of adjektive objects in lemma ", len(lemma_obj_adjObjList) )
-      # print("Number of verb objects in lemma ", len(lemma_obj_verbObjList) )
-      # print("Number of adverb objects in lemma ", len(lemma_obj_advOjbList) )
+     
       
-      print("APPLY Gamma info")
+   
       lemma_obj.set_adjektive_obj_lst(lemma_obj_adjObjList)
       lemma_obj.set_verb_obj_lst(lemma_obj_verbObjList)
       lemma_obj.set_adverb_obj_lst(lemma_obj_advOjbList)
       
-      #First check of model 
-      # lemma_sentence_ID =lemma_obj.get_sentenceID()
-      # sentence = lemma_obj.get_sentence()
-      # wordsinsentence = lemma_obj.get_words_in_sentence()
-      # nsentence)modelobj =  Sentence.objects.create(findingID = lemma_sentence_ID,
-      #                                     sentence_type = 'lemmasentence',
-      #                                     contains_lemma = 'True', 
-      #                                     sentence = sentence,
-      #                                     wordsinsentence = wordsi
-     
-    
       
       prev_obj_adjObjList , prev_obj_verbObjList, prev_obj_advOjbList = gramma_in_sentence( prev_obj.get_sentence(), nlp_lang)
       prev_obj.set_adjektive_obj_lst(prev_obj_adjObjList)
@@ -298,7 +284,6 @@ def apply_values_to_sentences(database_objects, nlp_lang):
       #Add lemma cotext for current
       lemmagrammacontex_obj = LemmaGrammaContext(lemma_obj, prev_obj, follow_obj)
       #Add current to list
-      print("Adding to gramma context")
       lemmagrammacontex_obj_List.append(lemmagrammacontex_obj)
        
       
