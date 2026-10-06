@@ -32,8 +32,8 @@ class Command(BaseCommand):
       
       #Register objects to records Start by idiot approch, and then refactor to a more elegant approach, but for now it is better
       lemma_sentence_handling(list_of_lemma_context_gramma_objects)
-      previous_sentence_handling(list_of_lemma_context_gramma_objects)
-      following_sentence_handling(list_of_lemma_context_gramma_objects)
+      #previous_sentence_handling(list_of_lemma_context_gramma_objects)
+      #following_sentence_handling(list_of_lemma_context_gramma_objects)
       #All records are now registered in the database, and can be used to build views and templates for displaying the sentences in the context of the analysis.      
              
       #Coming up USE records to build views and templates for displaying the sentences in the context of the analysis.  The SentenceInAnalyticalContext model can be used to store any type of sentence in the context of the analysis, and can be used to build views and templates for displaying the sentences in the context of the analysis.      
@@ -45,14 +45,64 @@ class Command(BaseCommand):
       print("Number of Sentence records from works are  in the database after building models for views and templates: ", len(records) )
       
       for record in records:
+         #print(f"Record ID: {record.id}, sentence: {record.sentence}, contains_lemma: {record.contains_lemma}, sentence_type: {record.sentence_type}, words_in_sentence: {record.words_in_sentence}")
+        
          print(f"Sentence record ID: {record.findingID}, sentence: {record.sentence}, contains_lemma: {record.contains_lemma}, sentence_type: {record.sentence_type}, words_in_sentence: {record.words_in_sentence}")
-         words = record.words.all()
-         for word in words:
-            print(f"Word record ID: {word.id}, word: {word.word}, wordclass: {word.wordclass}, position: {word.position}, sentence ID: {word.sentence.findingID}")
-         lemmas = record.lemmas.all()
-         for lemma in lemmas:
-            print(f"Lemma record ID: {lemma.id}, lemma: {lemma.lemma}, lemma_position: {lemma.lemma_position}, sentence ID: {lemma.sentence.findingID}")
-      
+         #Use the sentence_type lemma as anchor to get the words and lemmas for the sentence, because it is not necessary to get the words and lemmas for the previous and following sentences, because they are not necessary for the analysis, and it is not necessary to get the words and lemmas for the previous and following sentences, because they are not necessary for the analysis
+         if record.sentence_type == 'lemma_sentence': 
+            lemma_sentence_for_analysis_ID = record.findingID  #key ID for current analytical context
+            words = record.words.all() # lemma_sentence_for_analysis_ID
+            #get related previous and following sentence (able to map lemmas adj, verbs and advebs for "full" analytical context)
+            
+            previous_record = (
+               SentenceInAnalyticalContext.objects
+             .filter(findingID=record.findingID)
+                .first()
+            )
+            following_record = (
+               SentenceInAnalyticalContext.objects
+                .filter(findingID=record.findingID)
+               .first()
+            )
+            # previous_records = SentenceInAnalyticalContext.objects.all() # lemma sentence as anchor 
+            # for prev_record in previous_records:
+            #    if prev_record.findingID == record.findingID:
+            #       previous_record = prev_record
+            
+            # following_records = SentenceInAnalyticalContext.objects.all()# lemma sentence as anchor
+            # for follow_record in following_records:
+            #    if follow_record.findingID == record.findingID:
+            #       following_record = follow_record
+            
+            # if  previous_record != None:
+            #    words_in_previous_sentence =  previous_record.words_in_sentence
+            #    previous_words = previous_record.words.all()
+            #    previous_lemmas = previous_record.lemmas.all()
+            # else:
+            #    # can occurre lemmas in first  sentence
+            #    words_in_previous_sentence = 0
+            
+            # if following_record != None:
+            #    words_in_following_sentence = following_record.words_in_sentence
+            #    following_words = following_record.words.all()
+            #    following_lemmas = following_record.lemmas.all()
+            # else:
+            #    # can occurre lemma in last sentence
+            #    words_in_following_sentence = 0
+            
+            words_in_previous_sentence = previous_record.words_in_sentence 
+            words_in_following_sentence =   following_record.words_in_sentence
+            total_number_of_words = record.words_in_sentence +  words_in_previous_sentence + words_in_following_sentence
+            print(f"Total number of words in the context of the analysis for sentence record ID: {record.findingID} is: {total_number_of_words}")
+            for word in words: #lemma sentence words are registered in the database as WordObjectForAnalysis objects, and linked to the SentenceInAnalyticalContext object, so it is possible to get the words for the lemma sentence from the database, and it is not necessary to get the words for the previous and following sentences, because they are not necessary for the analysis
+               print(f"Word record ID: {word.id}, word: {word.word}, wordclass: {word.wordclass}, position: {word.position}, sentence ID: {word.sentence.findingID}")
+               grafical_x_position = word.position +  words_in_previous_sentence
+               
+               
+            lemmas = record.lemmas.all() #lemma sentence lemmas are registered in the database as LemmaObjectForAnalysis objects, and linked to the SentenceInAnalyticalContext object, so it is possible to get the lemmas for the lemma sentence from the database, and it is not necessary to get the lemmas for the previous and following sentences, because they are not necessary for the analysis
+            for lemma in lemmas: 
+               print(f"Lemma record ID: {lemma.id}, lemma: {lemma.lemma}, lemma_position: {lemma.lemma_position}, sentence ID: {lemma.sentence.findingID}")
+         
       
       ################################################################
       #TEST FASE 
@@ -60,6 +110,7 @@ class Command(BaseCommand):
                   #check
       records = SentenceInAnalyticalContext.objects.all()
       print("TEST FASE At leave Number of Sentence records from works are initilized to: ", len(records) )
+     
       
       self.stdout.write(self.style.SUCCESS('Successfully EMPTY IN TEST FASE run of building models for views and templates .'))
 
