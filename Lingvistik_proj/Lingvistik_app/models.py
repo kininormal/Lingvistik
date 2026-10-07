@@ -71,18 +71,21 @@ class WordObjectForAnalysis(models.Model): # check sentiment analysis, if it is 
         on_delete=models.CASCADE, 
         related_name="words"
     )
-   #@property
-   def grafical_X_position(self):
-      return self.position
+   graphic_X_position =  models.IntegerField(default=0)
+   graphic_Y_position =  models.IntegerField(default=0)
+  
+   # #@property
+   # def grafical_X_position(self):
+   #    return self.position
    
    #@property
-   def grafical_Y_position(self):
-      mapping = {
-         'lemma_sentence': 0,
-         'previous_sentence': -1,
-         'following_sentence': 1,
-      }
-      return mapping.get(self.sentence.sentence_type, 0)
+   # def grafical_Y_position(self):
+   #    mapping = {
+   #       'lemma_sentence': 0,
+   #       'previous_sentence': -1,
+   #       'following_sentence': 1,
+   #    }
+   #    return mapping.get(self.sentence.sentence_type, 0)
    
  
 class LemmaObjectForAnalysis(models.Model): #lemma is the word in the sentence that is the focus of the analysis, and the sentence is the sentence containing the lemma

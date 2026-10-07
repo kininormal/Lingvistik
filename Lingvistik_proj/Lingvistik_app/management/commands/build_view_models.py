@@ -49,48 +49,53 @@ class Command(BaseCommand):
         
          print(f"Sentence record ID: {record.findingID}, sentence: {record.sentence}, contains_lemma: {record.contains_lemma}, sentence_type: {record.sentence_type}, words_in_sentence: {record.words_in_sentence}")
          #Use the sentence_type lemma as anchor to get the words and lemmas for the sentence, because it is not necessary to get the words and lemmas for the previous and following sentences, because they are not necessary for the analysis, and it is not necessary to get the words and lemmas for the previous and following sentences, because they are not necessary for the analysis
-         if record.sentence_type == 'lemma_sentence': 
-            lemma_sentence_for_analysis_ID = record.findingID  #key ID for current analytical context
-            words = record.words.all() # lemma_sentence_for_analysis_ID
-            #get related previous and following sentence (able to map lemmas adj, verbs and advebs for "full" analytical context)
+         # if record.sentence_type == 'lemma_sentence': 
+         #    lemma_sentence_for_analysis_ID = record.findingID  #key ID for current analytical context
+         #    words = record.words.all() # lemma_sentence_for_analysis_ID
+         #    #get related previous and following sentence (able to map lemmas adj, verbs and advebs for "full" analytical context)
             
-            previous_record = (
-               SentenceInAnalyticalContext.objects
-             .filter(findingID=record.findingID)
-                .first()
-            )
-            following_record = (
-               SentenceInAnalyticalContext.objects
-                .filter(findingID=record.findingID)
-               .first()
-            )
+         #    previous_record = (
+         #       SentenceInAnalyticalContext.objects
+         #     .filter(findingID=record.findingID)
+         #        .first()
+         #    )
+         #    following_record = (
+         #       SentenceInAnalyticalContext.objects
+         #        .filter(findingID=record.findingID)
+         #       .first()
+         #    )
 
             
-            words_in_previous_sentence = previous_record.words_in_sentence 
-            words_in_following_sentence =   following_record.words_in_sentence
-            total_number_of_words = record.words_in_sentence +  words_in_previous_sentence + words_in_following_sentence
-            print(f"Total number of words in the context of the analysis for sentence record ID: {record.findingID} is: {total_number_of_words}")
-            for word in words: #lemma sentence words are registered in the database as WordObjectForAnalysis objects, and linked to the SentenceInAnalyticalContext object, so it is possible to get the words for the lemma sentence from the database, and it is not necessary to get the words for the previous and following sentences, because they are not necessary for the analysis
-               print(f"Word record ID: {word.id}, word: {word.word}, wordclass: {word.wordclass}, position: {word.position}, sentence ID: {word.sentence.findingID}")
-               current_word = word.word
-               current_gramma = word.wordclass # spacy abbreviation Current only adjective, verb or adverb in record
-               word_grafical_X_position = word.grafical_X_position # word position
-               word_grafical_Y_position =  word.grafical_Y_position # 0  lemma sentence
-            previous_words = previous_record.words.all()
-            print(f"Found {len(previous_words)} previous words in gramma classes for analysis")
-            following_words = following_record.words.all() 
-            print(f"Found {len(following_words)} following words in gramma classes for analysis")
-            lemmas = record.lemmas.all() #lemma sentence lemmas are registered in the database as LemmaObjectForAnalysis objects, and linked to the SentenceInAnalyticalContext object, so it is possible to get the lemmas for the lemma sentence from the database, and it is not necessary to get the lemmas for the previous and following sentences, because they are not necessary for the analysis
-            for lemma in lemmas: 
-               print(f"Lemma record ID: {lemma.id}, lemma: {lemma.lemma}, lemma_position: {lemma.lemma_position}, sentence ID: {lemma.sentence.findingID}")
+            # words_in_previous_sentence = previous_record.words_in_sentence 
+            # words_in_following_sentence =   following_record.words_in_sentence
+            # total_number_of_words = record.words_in_sentence +  words_in_previous_sentence + words_in_following_sentence
+            # print(f"Total number of words in the context of the analysis for sentence record ID: {record.findingID} is: {total_number_of_words}")
+            # for word in words: #lemma sentence words are registered in the database as WordObjectForAnalysis objects, and linked to the SentenceInAnalyticalContext object, so it is possible to get the words for the lemma sentence from the database, and it is not necessary to get the words for the previous and following sentences, because they are not necessary for the analysis
+            #    print(f"Word record ID: {word.id}, word: {word.word}, wordclass: {word.wordclass}, position: {word.position}, sentence ID: {word.sentence.findingID}")
+            #    # x = word. grafical_X_position
+
+               
+            #    # current_word = word.word
+            #    # current_gramma = word.wordclass # spacy abbreviation Current only adjective, verb or adverb in record
+            #    # word_grafical_X_position = word.grafical_X_position # word position
+            #    # word_grafical_Y_position =  word.grafical_Y_position # 0  lemma sentence
+            # previous_words = previous_record.words.all()
+            # print(f"Found {len(previous_words)} previous words in gramma classes for analysis")
+            # following_words = following_record.words.all() 
+            # print(f"Found {len(following_words)} following words in gramma classes for analysis")
+            # lemmas = record.lemmas.all() #lemma sentence lemmas are registered in the database as LemmaObjectForAnalysis objects, and linked to the SentenceInAnalyticalContext object, so it is possible to get the lemmas for the lemma sentence from the database, and it is not necessary to get the lemmas for the previous and following sentences, because they are not necessary for the analysis
+            # for lemma in lemmas: 
+            #    print(f"Lemma record ID: {lemma.id}, lemma: {lemma.lemma}, lemma_position: {lemma.lemma_position}, sentence ID: {lemma.sentence.findingID}")
          
       
-      ################################################################
-      #TEST FASE 
-      SentenceInAnalyticalContext.objects.all().delete()
-                  #check
-      records = SentenceInAnalyticalContext.objects.all()
-      print("TEST FASE At leave Number of Sentence records from works are initilized to: ", len(records) )
+      ##USE TEST IN VIEW ##############################################################
+      # #TEST FASE  US
+      # SentenceInAnalyticalContext.objects.all().delete()
+      #             #check
+      # records = SentenceInAnalyticalContext.objects.all()
+      
+      
+      print("For views in test face the Number of Sentence records from works are: ", len(records) )
      
       
       self.stdout.write(self.style.SUCCESS('Successfully EMPTY IN TEST FASE run of building models for views and templates .'))
@@ -129,6 +134,8 @@ def lemma_sentence_handling(list_of_lemma_context_gramma_objects):
             word_record_obj = WordObjectForAnalysis.objects.create(word = found_word,
                                                       wordclass ='ADJ', #hard coded as ADJ, because it is an adjektive, and not a noun, verb or adverb, so it is not necessary to get the word class from the adjektivinfo object
                                                       position = position,
+                                                      graphic_X_position = position,
+                                                      graphic_Y_position = 0,
                                                       sentence = sentence_record_obj)
             
    
@@ -145,6 +152,8 @@ def lemma_sentence_handling(list_of_lemma_context_gramma_objects):
             word_record_obj = WordObjectForAnalysis.objects.create(word = found_word,
                                                                wordclass ='VERB',#hard coded as VERB, because it is a verb, and not a noun, adjektive or adverb, so it is not necessary to get the word class from the verbinfo object
                                                                position = position,
+                                                               graphic_X_position = position,
+                                                               graphic_Y_position = 0,
                                                                sentence = sentence_record_obj)
 
          #get adverb info (some "redudance" in coding TESTING)
@@ -160,6 +169,8 @@ def lemma_sentence_handling(list_of_lemma_context_gramma_objects):
             word_record_obj = WordObjectForAnalysis.objects.create(word = found_word,
                                                                   wordclass = 'ADVERB',#hard coded as ADVERB, because it is an adverb, and not a noun, verb or adjektive, so it is not necessary to get the word class from the adverbinfo object
                                                                   position = position,
+                                                                  graphic_X_position = position,
+                                                                  graphic_Y_position = 0,
                                                                   sentence = sentence_record_obj)
          # check if sentence has lemma (must be true here) 
          contains_lemma_status =  lemma_sentence_content.has_lemma()
@@ -207,6 +218,8 @@ def previous_sentence_handling(list_of_lemma_context_gramma_objects):
                   word_record_obj = WordObjectForAnalysis.objects.create(word = found_word,
                                                             wordclass ='ADJ', #hard coded as ADJ, because it is an adjektive, and not a noun, verb or adverb, so it is not necessary to get the word class from the adjektivinfo object
                                                             position = position,
+                                                            graphic_X_position = position,
+                                                            graphic_Y_position = -1,
                                                             sentence = sentence_record_obj)
     
   
@@ -223,6 +236,8 @@ def previous_sentence_handling(list_of_lemma_context_gramma_objects):
       word_record_obj = WordObjectForAnalysis.objects.create(word = found_word,
                                                          wordclass ='VERB',#hard coded as VERB, because it is a verb, and not a noun, adjektive or adverb, so it is not necessary to get the word class from the verbinfo object
                                                          position = position,
+                                                         graphic_X_position = position,
+                                                         graphic_Y_position = -1,
                                                          sentence = sentence_record_obj)
 
       #get adverb info (some "redudance" in coding TESTING)
@@ -238,6 +253,8 @@ def previous_sentence_handling(list_of_lemma_context_gramma_objects):
          word_record_obj = WordObjectForAnalysis.objects.create(word = found_word,
                                                                wordclass = 'ADVERB',#hard coded as ADVERB, because it is an adverb, and not a noun, verb or adjektive, so it is not necessary to get the word class from the adverbinfo object
                                                                position = position,
+                                                               graphic_X_position = position,
+                                                               graphic_Y_position = -1,
                                                                sentence = sentence_record_obj)
       #only different from lemma sentence handling here 
       # check if sentence has lemma (can be true or false here) 
@@ -288,6 +305,8 @@ def following_sentence_handling(list_of_lemma_context_gramma_objects):
                   word_record_obj = WordObjectForAnalysis.objects.create(word = found_word,
                                                             wordclass ='ADJ', #hard coded as ADJ, because it is an adjektive, and not a noun, verb or adverb, so it is not necessary to get the word class from the adjektivinfo object
                                                             position = position,
+                                                            graphic_X_position = position,
+                                                            graphic_Y_position = 1,
                                                             sentence = sentence_record_obj)
        
      
@@ -304,6 +323,8 @@ def following_sentence_handling(list_of_lemma_context_gramma_objects):
          word_record_obj = WordObjectForAnalysis.objects.create(word = found_word,
                                                             wordclass ='VERB',#hard coded as VERB, because it is a verb, and not a noun, adjektive or adverb, so it is not necessary to get the word class from the verbinfo object
                                                             position = position,
+                                                            graphic_X_position = position,
+                                                            graphic_Y_position = 1,
                                                             sentence = sentence_record_obj)
    
          #get adverb info (some "redudance" in coding TESTING)
@@ -319,6 +340,8 @@ def following_sentence_handling(list_of_lemma_context_gramma_objects):
             word_record_obj = WordObjectForAnalysis.objects.create(word = found_word,
                                                                   wordclass = 'ADVERB',#hard coded as ADVERB, because it is an adverb, and not a noun, verb or adjektive, so it is not necessary to get the word class from the adverbinfo object
                                                                   position = position,
+                                                                  graphic_X_position = position,
+                                                                  graphic_Y_position = 1,
                                                                   sentence = sentence_record_obj)
          #only different from lemma sentence handling here 
          # check if sentence has lemma (can be true or false here) 
