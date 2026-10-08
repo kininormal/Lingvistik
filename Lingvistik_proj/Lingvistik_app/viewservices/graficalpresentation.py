@@ -1,18 +1,11 @@
 import matplotlib.pyplot as plt
 from ..models import SentenceInAnalyticalContext
-
-
+import matplotlib.pyplot as plt
 import io
 import base64
-def fig_to_base64(fig, dpiq):
-    buff = io.BytesIO()
-    fig.savefig(buff, format='png', dpi= dpiq, bbox_inches="tight")
-    buff.seek(0)
-    string = base64.b64encode(buff.read()).decode("utf-8")
-    plt.close(fig)
-    plt.clf() # added
-    return string
-def make_grafical_presentation(records):
+
+
+def gramma_grafical_plt(records, quality):
    print("Number of Sentence records from works to build graphics: ", len(records) )
    
    if len(records) > 0:
@@ -38,54 +31,42 @@ def make_grafical_presentation(records):
             )
 
 
-         fig, ax = plt.subplots(figsize=(10, 8))
+            fig, ax = plt.subplots(figsize=(10, 8))
 
-         for w in words:
-            x = w.grafical_X_position
-            y = w.grafical_Y_position
+            for w in words:
+                x = w.graphic_X_position
+                print(f"graph x {x} ")
+                y = w.graphic_Y_position
+                print(f"graph y {y} ")
+                
+                # Layer 1: the word
+                ax.text(
+                x, y, w.word,
+                 fontsize=12,
+                 color="black",
+                  zorder=10
+                )
 
-            # Lag 1: selve ordet
-            ax.text(
-               x, y, w.word,
-               fontsize=12,
-               color="black",
-               zorder=10
-            )
-
-            # Lag 2: grammatisk klasse (transparent)
-            ax.text(
-               x, y, w.wordclass,
-               fontsize=10,
-               color="red",
-               alpha=0.35,     # ← gør det transparent
-               zorder=20       # ← ligger ovenpå ordet
-            )
+                # Layer 2: gramma class (transparent)
+                ax.text(
+                  x, y, w.wordclass,
+                  fontsize=10,
+                  color="red",
+                  alpha=0.35,     # ← gør det transparent
+                  zorder=20       # ← ligger ovenpå ordet
+             )
 
       # plt.gca().invert_yaxis()  # hvis du bruger tekst‑koordinater som i NLP
-      plt.tight_layout()
+      #plt.tight_layout()
     
       fig = plt.gcf()
-      return fig_to_base64(fig, 600)
-      
-            # words_in_previous_sentence = previous_record.words_in_sentence 
-            # words_in_following_sentence =   following_record.words_in_sentence
-            # total_number_of_words = record.words_in_sentence +  words_in_previous_sentence + words_in_following_sentence
-            # print(f"Total number of words in the context of the analysis for sentence record ID: {record.findingID} is: {total_number_of_words}")
-            # for word in words: #lemma sentence words are registered in the database as WordObjectForAnalysis objects, and linked to the SentenceInAnalyticalContext object, so it is possible to get the words for the lemma sentence from the database, and it is not necessary to get the words for the previous and following sentences, because they are not necessary for the analysis
-            #    print(f"Word record ID: {word.id}, word: {word.word}, wordclass: {word.wordclass}, position: {word.position}, sentence ID: {word.sentence.findingID}")
-            #    x = word.position_x
-
-               
-            #    current_word = word.word
-            #    current_gramma = word.wordclass # spacy abbreviation Current only adjective, verb or adverb in record
-            #    word_grafical_X_position = word.grafical_X_position # word position
-            #    word_grafical_Y_position =  word.grafical_Y_position # 0  lemma sentence
-            # previous_words = previous_record.words.all()
-            # print(f"Found {len(previous_words)} previous words in gramma classes for analysis")
-            # following_words = following_record.words.all() 
-            # print(f"Found {len(following_words)} following words in gramma classes for analysis")
-            # lemmas = record.lemmas.all() #lemma sentence lemmas are registered in the database as LemmaObjectForAnalysis objects, and linked to the SentenceInAnalyticalContext object, so it is possible to get the lemmas for the lemma sentence from the database, and it is not necessary to get the lemmas for the previous and following sentences, because they are not necessary for the analysis
-            # for lemma in lemmas: 
-            #    print(f"Lemma record ID: {lemma.id}, lemma: {lemma.lemma}, lemma_position: {lemma.lemma_position}, sentence ID: {lemma.sentence.findingID}")
-   else:
-      print("Test fase records was empy- use build_view_models to build records")
+      return fig_to_base64(fig, quality)
+  
+def fig_to_base64(fig, dpiq):
+    buff = io.BytesIO()
+    fig.savefig(buff, format='png', dpi= dpiq, bbox_inches="tight")
+    buff.seek(0)
+    string = base64.b64encode(buff.read()).decode("utf-8")
+    plt.close(fig)
+    plt.clf() # added
+    return string

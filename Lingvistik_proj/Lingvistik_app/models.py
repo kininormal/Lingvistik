@@ -110,3 +110,13 @@ class LemmaObjectForAnalysis(models.Model): #lemma is the word in the sentence t
          'following_sentence': 1,
       }
       return mapping.get(self.sentence.sentence_type, 0)
+
+
+class VisualisationOfSentence(models.Model):
+   sentence_svg = models.TextField() 
+   
+   sentence = models.ForeignKey(
+        SentenceInAnalyticalContext, 
+        on_delete=models.CASCADE, 
+        related_name="visuel_words"
+    )

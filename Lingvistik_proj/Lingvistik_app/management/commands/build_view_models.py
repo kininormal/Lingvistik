@@ -30,6 +30,10 @@ class Command(BaseCommand):
       list_of_lemma_context_gramma_objects = apply_values_to_sentences(objects_in_database, nlp_en)
       print(f"Returned number of gramma context gramma objects {len(list_of_lemma_context_gramma_objects)}")
       
+  
+         
+      
+      
       #Register objects to records Start by idiot approch, and then refactor to a more elegant approach, but for now it is better
       lemma_sentence_handling(list_of_lemma_context_gramma_objects)
       #previous_sentence_handling(list_of_lemma_context_gramma_objects)
@@ -45,25 +49,25 @@ class Command(BaseCommand):
       print("Number of Sentence records from works are  in the database after building models for views and templates: ", len(records) )
       
       for record in records:
-         #print(f"Record ID: {record.id}, sentence: {record.sentence}, contains_lemma: {record.contains_lemma}, sentence_type: {record.sentence_type}, words_in_sentence: {record.words_in_sentence}")
+         print(f"Record ID: {record.id}, sentence: {record.sentence}, contains_lemma: {record.contains_lemma}, sentence_type: {record.sentence_type}, words_in_sentence: {record.words_in_sentence}")
         
-         print(f"Sentence record ID: {record.findingID}, sentence: {record.sentence}, contains_lemma: {record.contains_lemma}, sentence_type: {record.sentence_type}, words_in_sentence: {record.words_in_sentence}")
+         # print(f"Sentence record ID: {record.findingID}, sentence: {record.sentence}, contains_lemma: {record.contains_lemma}, sentence_type: {record.sentence_type}, words_in_sentence: {record.words_in_sentence}")
          #Use the sentence_type lemma as anchor to get the words and lemmas for the sentence, because it is not necessary to get the words and lemmas for the previous and following sentences, because they are not necessary for the analysis, and it is not necessary to get the words and lemmas for the previous and following sentences, because they are not necessary for the analysis
-         # if record.sentence_type == 'lemma_sentence': 
-         #    lemma_sentence_for_analysis_ID = record.findingID  #key ID for current analytical context
-         #    words = record.words.all() # lemma_sentence_for_analysis_ID
-         #    #get related previous and following sentence (able to map lemmas adj, verbs and advebs for "full" analytical context)
+         if record.sentence_type == 'lemma_sentence': 
+            lemma_sentence_for_analysis_ID = record.findingID  #key ID for current analytical context
+            words = record.words.all() # lemma_sentence_for_analysis_ID
+            #get related previous and following sentence (able to map lemmas adj, verbs and advebs for "full" analytical context)
             
-         #    previous_record = (
-         #       SentenceInAnalyticalContext.objects
-         #     .filter(findingID=record.findingID)
-         #        .first()
-         #    )
-         #    following_record = (
-         #       SentenceInAnalyticalContext.objects
-         #        .filter(findingID=record.findingID)
-         #       .first()
-         #    )
+            previous_record = (
+               SentenceInAnalyticalContext.objects
+             .filter(findingID=record.findingID)
+                .first()
+            )
+            following_record = (
+               SentenceInAnalyticalContext.objects
+                .filter(findingID=record.findingID)
+               .first()
+            )
 
             
             # words_in_previous_sentence = previous_record.words_in_sentence 
