@@ -1,3 +1,6 @@
+#INN POROCESS OF REPLACEMENT OF Graphviz
+#DO NO=T WORK TypeError: 'ellipsis' object is not a mapping from mattplot lib 
+
 from django.core.management.base import BaseCommand
 import spacy
 from pathlib import Path
@@ -54,7 +57,7 @@ class Command(BaseCommand):
       
       self.stdout.write(self.style.SUCCESS('NOT YET Successfully build grap records.'))
       
-      
+    
    
 import matplotlib
 matplotlib.use("Agg")

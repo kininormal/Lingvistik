@@ -20,6 +20,15 @@ class ParsedSentence(models.Model):
 class SentenceInAnalyticalContext(models.Model):
    class Meta:
       ordering = ['findingID']
+      constraints = [
+         models.UniqueConstraint(
+            fields=['findingID', 'sentence_type'],
+            condition=~models.Q(sentence_type='other'),
+            name='unique_sentence_type_per_finding',
+         )
+      ]
+      
+   findingID = models.CharField(max_length=500, db_index=True)
    
    SENTENCE_TYPE = [
       ('previous_sentence', 'Previous'),
@@ -41,8 +50,18 @@ class SentenceInAnalyticalContext(models.Model):
       max_length=10,  null=False, choices=CONTAINS_LEMMA_STATUS, default='Unknown') #ensure need to register if the sentence contains a lemma, so that it is possible to distinguish between the different types of sentences in the database
    sentence_type = models.CharField(
       max_length=20,  null=False, choices=SENTENCE_TYPE, default='other') #ensure need to register the sentence type, so that it is possible to distinguish between the different types of sentences in the database
-   sentence = models.TextField()
    words_in_sentence = models.IntegerField(null=True, blank=False) #Null is allowed, Indicate not set
+   @property
+   def get_sentence_context(self):
+        """Return (previous, following) sentence for this finding."""
+        found = {
+            s.sentence_type: s
+            for s in type(self).objects.filter(
+                findingID=self.findingID,
+                sentence_type__in=['previous_sentence', 'following_sentence'],
+            )
+        }
+        return found.get('previous_sentence'), found.get('following_sentence')
 
 
 
