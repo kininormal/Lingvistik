@@ -27,17 +27,39 @@ class Command(BaseCommand):
       records = SentenceInAnalyticalContext.objects.all()
       print("TEST FASE Number of Sentence records from works are  initilized to: ", len(records) )
       
-      list_of_lemma_context_gramma_objects = apply_values_to_sentences(objects_in_database, nlp_en)
-      print(f"Returned number of gramma context gramma objects {len(list_of_lemma_context_gramma_objects)}")
       
+      # OBS get_sentenceID is currently not unique The ID of lemma sentence is addressed to previous and following 
+      
+      lemma_obj_list, prev_obj_list, follow_obj_list = apply_values_to_sentences(objects_in_database, nlp_en)
+      SentenceInAnalyticalContext.objects.all().delete()
+      print(f"Returned {len(lemma_obj_list)}  lemma objects ")
+      for index, lemma_obj in enumerate(lemma_obj_list):
+         print(f"Returend list contains lemma sentence with id {lemma_obj.get_sentenceID()}, name {lemma_obj.name} and lemma {lemma_obj.lemma}")
+         if prev_obj_list[index] != None:
+            prev_obj = prev_obj_list[index]
+            print(f"Previoue sentence with id {prev_obj.get_sentenceID()}, name { prev_obj.name}")
+         else:
+            print(f"Lemma in frist sentence so no previous found")
+         if follow_obj_list[index] != None:
+            follow_obj = follow_obj_list[index]
+            print(f"Following sentence with id {follow_obj.get_sentenceID()}, name {follow_obj.name}")
+         else:
+            print(f"Lemma in last sentence so no following found")
+         
+      # print(f"Returned lemma sentence with id {lemma_obj.get_sentenceID()}, name {lemma_obj.name} and  lemma {lemma_obj.lemma}")
+      
+      # print(f"Returned previous sentence name {prev_obj.name}    with id {prev_obj.get_sentenceID()}")
+      
+      # print(f"Returned following sentence name {follow_obj.name} with id {follow_obj.get_sentenceID()}")
   
+        
          
       
       
       #Register objects to records Start by idiot approch, and then refactor to a more elegant approach, but for now it is better
-      lemma_sentence_handling(list_of_lemma_context_gramma_objects)
-      #previous_sentence_handling(list_of_lemma_context_gramma_objects)
-      #following_sentence_handling(list_of_lemma_context_gramma_objects)
+      #lemma_sentence_handling(list_of_lemma_context_gramma_objects)
+      # previous_sentence_handling(list_of_lemma_context_gramma_objects)
+      # following_sentence_handling(list_of_lemma_context_gramma_objects)
       #All records are now registered in the database, and can be used to build views and templates for displaying the sentences in the context of the analysis.      
              
       #Coming up USE records to build views and templates for displaying the sentences in the context of the analysis.  The SentenceInAnalyticalContext model can be used to store any type of sentence in the context of the analysis, and can be used to build views and templates for displaying the sentences in the context of the analysis.      
@@ -107,6 +129,7 @@ class Command(BaseCommand):
 
 
 def lemma_sentence_handling(list_of_lemma_context_gramma_objects):
+   #print("Handling a lemma sentence")
    for lemma_context in  list_of_lemma_context_gramma_objects:
          #Lemma sentence in LemmaGrammaContext
          lemma_sentence_content = lemma_context.get_lemma_sentence_gramma_objects()
@@ -193,6 +216,7 @@ def lemma_sentence_handling(list_of_lemma_context_gramma_objects):
      
 
 def previous_sentence_handling(list_of_lemma_context_gramma_objects):
+   #print("Handling a previous sentence")
    for previous_context in  list_of_lemma_context_gramma_objects:
       #Previous sentence in LemmaGrammaContext
       previous_sentence_content = previous_context.get_previous_sentence_gramma_objects()
@@ -203,75 +227,79 @@ def previous_sentence_handling(list_of_lemma_context_gramma_objects):
       words_in_previous_sentence = previous_sentence_content.get_words_in_sentence()
       # print(f"Words in previous sentence: {words_in_previous_sentence}")
       contains_lemma_status = previous_sentence_content.has_lemma()
+      print(f"previous sentence has id {previous_sentence_ID} and is: {previous_sentence} It has {len( previous_sentence_content)} to consider. Lemma status is:{contains_lemma_status}")
+      
+      
+      
       #Start simple Does migrate still complain about missing Sentence model?  - yes, but it is not used in the code, so it is not a problem, but it is better to remove it from the code, and use the new model SentenceInAnalyticalContext instead
       #Start by creating a new SentenceInAnalyticalContext object for the previous sentence
-      sentence_record_obj = SentenceInAnalyticalContext.objects.create(findingID = previous_sentence_ID,
-                                                      contains_lemma = contains_lemma_status,
-                                                      sentence_type = 'previous_sentence',
-                                                      sentence = previous_sentence,
-                                                      words_in_sentence = words_in_previous_sentence)
-      #get adjektive info (some "redudance" in coding TESTING) 
-      previous_adjektive_info_lst = previous_sentence_content.get_adjektive_obj_lst()
-      for adjektivinfo  in  previous_adjektive_info_lst:
-                  found_word = adjektivinfo.get_word()
-                  #hard coded as ADJ, because it is an adjektive, and not a noun, verb or adverb, so it is not necessary to get the word class from the adjektivinfo object
-                  word_class = adjektivinfo.get_gramma_cat() #Value is None so something is rotten here, because the word class is not always correct, and it is not always possible to get the word class from the adjektivinfo object, so it is better to hard code it as ADJ
-                  position = adjektivinfo.get_position()
-                  # print(f"Adjektive info:  {found_word}, OBS word class is there  abbreviations problems {word_class}, {position}")
-                  #register adjektive word in the database as a WordObjectForAnalysis object, and link it to the SentenceInAnalyticalContext object
-                  word_record_obj = WordObjectForAnalysis.objects.create(word = found_word,
-                                                            wordclass ='ADJ', #hard coded as ADJ, because it is an adjektive, and not a noun, verb or adverb, so it is not necessary to get the word class from the adjektivinfo object
-                                                            position = position,
-                                                            graphic_X_position = position,
-                                                            graphic_Y_position = -1,
-                                                            sentence = sentence_record_obj)
+   #    previous_sentence_record_obj = SentenceInAnalyticalContext.objects.create(findingID = previous_sentence_ID,
+   #                                                    contains_lemma = contains_lemma_status,
+   #                                                    sentence_type = 'previous_sentence',
+   #                                                    sentence = previous_sentence,
+   #                                                    words_in_sentence = words_in_previous_sentence)
+   #    #get adjektive info (some "redudance" in coding TESTING) 
+   #    previous_adjektive_info_lst = previous_sentence_content.get_adjektive_obj_lst()
+   #    for adjektivinfo  in  previous_adjektive_info_lst:
+   #                found_word = adjektivinfo.get_word()
+   #                #hard coded as ADJ, because it is an adjektive, and not a noun, verb or adverb, so it is not necessary to get the word class from the adjektivinfo object
+   #                word_class = adjektivinfo.get_gramma_cat() #Value is None so something is rotten here, because the word class is not always correct, and it is not always possible to get the word class from the adjektivinfo object, so it is better to hard code it as ADJ
+   #                position = adjektivinfo.get_position()
+   #                # print(f"Adjektive info:  {found_word}, OBS word class is there  abbreviations problems {word_class}, {position}")
+   #                #register adjektive word in the database as a WordObjectForAnalysis object, and link it to the SentenceInAnalyticalContext object
+   #                word_record_obj = WordObjectForAnalysis.objects.create(word = found_word,
+   #                                                          wordclass ='ADJ', #hard coded as ADJ, because it is an adjektive, and not a noun, verb or adverb, so it is not necessary to get the word class from the adjektivinfo object
+   #                                                          position = position,
+   #                                                          graphic_X_position = position,
+   #                                                          graphic_Y_position = -1,
+   #                                                          sentence = previous_sentence_record_obj)
     
   
-   #get verb info (some "redudance" in coding TESTING)
-   previous_adjektive_info_lst_verb_info_lst = previous_sentence_content.get_verb_obj_lst()
-   #get verb objects from lemma_context, but not in the SentenceInAnalyticalContext model, so they are not stored in the database, but they can be accessed through the lemma_context object
-   for verbinfo in previous_adjektive_info_lst_verb_info_lst:
-      found_word = verbinfo.get_word()
-      #hard coded as VERB, because it is a verb, and not a noun, adjektive or adverb, so it is not necessary to get the word class from the verbinfo object
-      word_class = verbinfo.get_gramma_cat() #Value is None so something  is rotten here, because the word class is not always correct, and it is not always possible to get the word class from the verbinfo object, so it is better to hard code it as VERB
-      position = verbinfo.get_position()
-      # print(f"Verb info:  {found_word}, OBS word class is there  abbreviations problems {word_class}, {position}")
-      #register verb word in the database as a WordObjectForAnalysis object, and link it to the SentenceInAnalyticalContext object
-      word_record_obj = WordObjectForAnalysis.objects.create(word = found_word,
-                                                         wordclass ='VERB',#hard coded as VERB, because it is a verb, and not a noun, adjektive or adverb, so it is not necessary to get the word class from the verbinfo object
-                                                         position = position,
-                                                         graphic_X_position = position,
-                                                         graphic_Y_position = -1,
-                                                         sentence = sentence_record_obj)
+   # #get verb info (some "redudance" in coding TESTING)
+   # previous_adjektive_info_lst_verb_info_lst = previous_sentence_content.get_verb_obj_lst()
+   # #get verb objects from lemma_context, but not in the SentenceInAnalyticalContext model, so they are not stored in the database, but they can be accessed through the lemma_context object
+   # for verbinfo in previous_adjektive_info_lst_verb_info_lst:
+   #    found_word = verbinfo.get_word()
+   #    #hard coded as VERB, because it is a verb, and not a noun, adjektive or adverb, so it is not necessary to get the word class from the verbinfo object
+   #    word_class = verbinfo.get_gramma_cat() #Value is None so something  is rotten here, because the word class is not always correct, and it is not always possible to get the word class from the verbinfo object, so it is better to hard code it as VERB
+   #    position = verbinfo.get_position()
+   #    # print(f"Verb info:  {found_word}, OBS word class is there  abbreviations problems {word_class}, {position}")
+   #    #register verb word in the database as a WordObjectForAnalysis object, and link it to the SentenceInAnalyticalContext object
+   #    word_record_obj = WordObjectForAnalysis.objects.create(word = found_word,
+   #                                                       wordclass ='VERB',#hard coded as VERB, because it is a verb, and not a noun, adjektive or adverb, so it is not necessary to get the word class from the verbinfo object
+   #                                                       position = position,
+   #                                                       graphic_X_position = position,
+   #                                                       graphic_Y_position = -1,
+   #                                                       sentence = previous_sentence_record_obj)
 
-      #get adverb info (some "redudance" in coding TESTING)
-      previous_adjektive_info_lst_adverb_info_lst = previous_sentence_content.get_adverb_obj_lst()
-      #get adverb objects from lemma_context, but not in the SentenceInAnalyticalContext model, so they are not stored in the database, but they can be accessed through the lemma_context object
-      for adverbinfo in previous_adjektive_info_lst_adverb_info_lst:
-         found_word = adverbinfo.get_word()
-         #hard coded as ADVERB, because it is an adverb, and not a noun, verb or adjektive, so it is not necessary to get the word class from the adverbinfo object
-         word_class = adverbinfo.get_gramma_cat() #Value is None so something  is rotten here, because the word class is not always correct, and it is not always possible to get the word class from the adverbinfo object, so it is better to hard code it as ADVERB
-         position = adverbinfo.get_position()
-         # print(f"Adverb info:  {found_word}, OBS word class is there  abbreviations problems {word_class}, {position}")
-         #register adverb word in the database as a WordObjectForAnalysis object, and link it to the SentenceInAnalyticalContext object
-         word_record_obj = WordObjectForAnalysis.objects.create(word = found_word,
-                                                               wordclass = 'ADVERB',#hard coded as ADVERB, because it is an adverb, and not a noun, verb or adjektive, so it is not necessary to get the word class from the adverbinfo object
-                                                               position = position,
-                                                               graphic_X_position = position,
-                                                               graphic_Y_position = -1,
-                                                               sentence = sentence_record_obj)
-      #only different from lemma sentence handling here 
-      # check if sentence has lemma (can be true or false here) 
-      contains_lemma_status =  previous_sentence_content.has_lemma()
-      if contains_lemma_status == True:
-         #print(f"Sentence with ID: {previous_sentence_ID} has a lemma, so it is registered as a previous sentence in the database")
-         lemma = previous_sentence_content.get_lemma()
-         #lemma can ocurre in the sentence more than once, so it is necessary to get the position of the lemma in the sentence, and register it in the database as a LemmaObjectForAnalysis object, and link it to the SentenceInAnalyticalContext object
-         lemma_positions = previous_sentence_content.get_lemmapositionlist()
-         for lemma_position in lemma_positions: 
-            lemma_record_obj = LemmaObjectForAnalysis.objects.create(lemma = lemma,
-                                                                      lemma_position = lemma_position,
-                                                                      sentence = sentence_record_obj)
+   #    #get adverb info (some "redudance" in coding TESTING)
+   #    previous_adjektive_info_lst_adverb_info_lst = previous_sentence_content.get_adverb_obj_lst()
+   #    #get adverb objects from lemma_context, but not in the SentenceInAnalyticalContext model, so they are not stored in the database, but they can be accessed through the lemma_context object
+   #    for adverbinfo in previous_adjektive_info_lst_adverb_info_lst:
+   #       found_word = adverbinfo.get_word()
+   #       #hard coded as ADVERB, because it is an adverb, and not a noun, verb or adjektive, so it is not necessary to get the word class from the adverbinfo object
+   #       word_class = adverbinfo.get_gramma_cat() #Value is None so something  is rotten here, because the word class is not always correct, and it is not always possible to get the word class from the adverbinfo object, so it is better to hard code it as ADVERB
+   #       position = adverbinfo.get_position()
+   #       # print(f"Adverb info:  {found_word}, OBS word class is there  abbreviations problems {word_class}, {position}")
+   #       #register adverb word in the database as a WordObjectForAnalysis object, and link it to the SentenceInAnalyticalContext object
+   #       word_record_obj = WordObjectForAnalysis.objects.create(word = found_word,
+   #                                                             wordclass = 'ADVERB',#hard coded as ADVERB, because it is an adverb, and not a noun, verb or adjektive, so it is not necessary to get the word class from the adverbinfo object
+   #                                                             position = position,
+   #                                                             graphic_X_position = position,
+   #                                                             graphic_Y_position = -1,
+   #                                                             sentence = previous_sentence_record_obj)
+   #    #only different from lemma sentence handling here 
+   #    # check if sentence has lemma (can be true or false here) 
+   #    contains_lemma_status =  previous_sentence_content.has_lemma()
+   #    if contains_lemma_status == True:
+   #       #print(f"Sentence with ID: {previous_sentence_ID} has a lemma, so it is registered as a previous sentence in the database")
+   #       lemma = previous_sentence_content.get_lemma()
+   #       #lemma can ocurre in the sentence more than once, so it is necessary to get the position of the lemma in the sentence, and register it in the database as a LemmaObjectForAnalysis object, and link it to the SentenceInAnalyticalContext object
+   #       lemma_positions = previous_sentence_content.get_lemmapositionlist()
+   #       for lemma_position in lemma_positions: 
+   #          lemma_record_obj = LemmaObjectForAnalysis.objects.create(lemma = lemma,
+   #                                                                    lemma_position = lemma_position,
+   #                                                                    sentence = previous_sentence_record_obj)
             
         
        
@@ -280,6 +308,7 @@ def previous_sentence_handling(list_of_lemma_context_gramma_objects):
          
          
 def following_sentence_handling(list_of_lemma_context_gramma_objects):
+   #print("Handling a following sentence")
    for following_context in  list_of_lemma_context_gramma_objects:
       #Previous sentence in LemmaGrammaContext
       following_sentence_content = following_context.get_previous_sentence_gramma_objects()

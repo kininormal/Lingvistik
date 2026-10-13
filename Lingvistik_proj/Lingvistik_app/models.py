@@ -61,6 +61,7 @@ class SentenceInAnalyticalContext(models.Model):
                 sentence_type__in=['previous_sentence', 'following_sentence'],
             )
         }
+        print(f"The type for found in method is:   {type(found)}")
         return found.get('previous_sentence'), found.get('following_sentence')
 
 

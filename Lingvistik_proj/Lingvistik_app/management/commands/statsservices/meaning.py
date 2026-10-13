@@ -139,20 +139,7 @@ class FollowingSentence:
       return self.lemma_sentence_ref.get_sentenceID()
    def get_lemma(self): #get_parent_lemma????
          return self.lemma_sentence_ref.get_lemma()
-   
-class LemmaGrammaContext:
-   def __init__(self, lemma_sentence_gramma_obj, previous_sentence_gramma_obj, following_sentence_gramma_obj ):
-      self.name = 'Lemma Gramma Context'
-      self.lemma_sentence_gramma = lemma_sentence_gramma_obj
-      self.previous_sentence_gramma = previous_sentence_gramma_obj
-      self.following_sentence_gramma = following_sentence_gramma_obj
-   def get_lemma_sentence_gramma_objects(self):
-      return self.lemma_sentence_gramma
-   def get_previous_sentence_gramma_objects(self):
-      return self.previous_sentence_gramma
-   def get_following_sentence_gramma_objects(self):
-      return self.following_sentence_gramma
-            
+
 
 #Version 2 noter 
 # class BaseSentence:
@@ -194,11 +181,9 @@ class LemmaGrammaContext:
 def apply_values_to_sentences(database_objects, nlp_lang):
    num_objects_in_database = len(database_objects)
    print(f"Database ParsedSentence ought to contain ALL the sentences  (ALL works) n in dataframe : {num_objects_in_database}")
-  
-   
-   
-   lemmagrammacontex_obj_List = []
-   
+   lemma_obj_list = []
+   prev_obj_list = []
+   follow_obj_list = []
 
    for database_object in database_objects:
       lemma_obj = LemmaSentence(database_object.lemma, database_object.sentence, database_object.findingID)
@@ -280,15 +265,11 @@ def apply_values_to_sentences(database_objects, nlp_lang):
          position = adverbObj.get_position()
          # print(f"Follow sentence had adverb {word}  at position {position}")
          #register gramma of lemma sentence, previous and following sentence in context
-      
-      #Add lemma cotext for current
-      lemmagrammacontex_obj = LemmaGrammaContext(lemma_obj, prev_obj, follow_obj)
-      #Add current to list
-      lemmagrammacontex_obj_List.append(lemmagrammacontex_obj)
-       
-      
-      
-   return lemmagrammacontex_obj_List  
+      lemma_obj_list.append(lemma_obj)   
+      prev_obj_list.append(prev_obj)
+      follow_obj_list.append(follow_obj)
+   return lemma_obj_list, prev_obj_list, follow_obj_list   
+   # return lemma_obj, prev_obj, follow_obj
       
       
       
