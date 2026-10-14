@@ -2,7 +2,7 @@ from django.shortcuts import render, HttpResponse, redirect
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 import spacy
 from spacy import displacy
-from . models import ParsedSentence, SentenceInAnalyticalContext, VisualisationOfSentence
+from . models import ParsedSentence
 from .management.commands.statsservices.handle_svg import prepare_svg
 
 

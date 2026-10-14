@@ -1,5 +1,5 @@
 from django.db import models
-   
+import re
 # Create your models here.
 class ParsedSentence(models.Model):
    class Meta:
@@ -16,57 +16,43 @@ class ParsedSentence(models.Model):
    treesentences = models.TextField()
    treesentences_svg_html = models.TextField()  # just store the raw SVG string
    
-#Build on this Succeded removing that migrate "is missing/or are unabel to find" the Sentence model, and using the new model SentenceInAnalyticalContext instead, which is simpler and more flexible, and can be used for any type of sentence, not just lemma sentences.  The SentenceInAnalyticalContext model can be used to store any sentence in the context of the analysis, including previous and following sentences, and other sentences that are not directly related to the lemma sentence.  The findingID field can be used to link the sentences together, and the sentence field can be used to store the raw text of the sentence.  The SentenceInAnalyticalContext model can be used to store any type of sentence in the context of the analysis, and can be used to build views and templates for displaying the sentences in the context of the analysis.
-class SentenceInAnalyticalContext(models.Model):
+   
+class LemmaSentence(models.Model):
    class Meta:
       ordering = ['findingID']
-      constraints = [
-         models.UniqueConstraint(
-            fields=['findingID', 'sentence_type'],
-            condition=~models.Q(sentence_type='other'),
-            name='unique_sentence_type_per_finding',
-         )
-      ]
-      
+    
    findingID = models.CharField(max_length=500, db_index=True)
-   
-   SENTENCE_TYPE = [
-      ('previous_sentence', 'Previous'),
-      ('lemma_sentence', 'Lemma Sentence'),
-      ('following_sentence',   'Following Sentence'), 
-      ('other', 'Other'),  
-   ]
-   
-   CONTAINS_LEMMA_STATUS = [
-      ('True', 'Contains Lemma'),  
-      ('False', 'Does Not Contain Lemma'),
-      ('Unknown', 'Unknown'),
-   ]
-   
-   findingID = models.TextField()
-   sentence =  models.TextField()
-   #use contains not has_ or is_ as not BooleanField, because it is possible that the sentence does not contain a lemma, but it is not known if it contains a lemma or not, so it is better to use a CharField with choices
-   contains_lemma = models.CharField(
-      max_length=10,  null=False, choices=CONTAINS_LEMMA_STATUS, default='Unknown') #ensure need to register if the sentence contains a lemma, so that it is possible to distinguish between the different types of sentences in the database
-   sentence_type = models.CharField(
-      max_length=20,  null=False, choices=SENTENCE_TYPE, default='other') #ensure need to register the sentence type, so that it is possible to distinguish between the different types of sentences in the database
-   words_in_sentence = models.IntegerField(null=True, blank=False) #Null is allowed, Indicate not set
+
+   lemma_sentence =  models.TextField()
    @property
-   def get_sentence_context(self):
-        """Return (previous, following) sentence for this finding."""
-        found = {
-            s.sentence_type: s
-            for s in type(self).objects.filter(
-                findingID=self.findingID,
-                sentence_type__in=['previous_sentence', 'following_sentence'],
-            )
-        }
-        print(f"The type for found in method is:   {type(found)}")
-        return found.get('previous_sentence'), found.get('following_sentence')
+   def words_in_lemma_sentence(self): # = models.IntegerField(null=True, blank=False) #Null is allowed, Indicate not set
+      words = re.findall(r'\b\w+\b',  self.lemma_sentence)
+      return len(words)
+   
+class PreviousSentence(models.Model):
+ 
+   previous_sentence =  models.TextField()
+   #use contains not has_ or is_ as not BooleanField, because it is possible that the sentence does not contain a lemma, but it is not known if it contains a lemma or not, so it is better to use a CharField with choices
+   @property
+   def words_in_previous_sentence(self):# = models.IntegerField(null=True, blank=False) #Null is allowed, Indicate not set
+      words = re.findall(r'\b\w+\b',  self.previous_sentence)
+      return len(words)
+   
+   sentence_for_previous_id = models.OneToOneField(LemmaSentence, on_delete=models.CASCADE)
+  
+      
+class FollowingSentence(models.Model):
 
+   following_sentence =  models.TextField()
+   #use contains not has_ or is_ as not BooleanField, because it is possible that the sentence does not contain a lemma, but it is not known if it contains a lemma or not, so it is better to use a CharField with choices
+   @property
+   def words_in_following_sentence(self): #= models.IntegerField(null=True, blank=False) #Null is allowed, Indicate not set
+      words = re.findall(r'\b\w+\b',  self.following_sentence)
+      return len(words)
+   sentence_for_following_id = models.OneToOneField(LemmaSentence, on_delete=models.CASCADE)
 
-
-class WordObjectForAnalysis(models.Model): # check sentiment analysis, if it is possible to use the sentiment analysis to get the word class, and if it is possible to use the sentiment analysis to get the word position
+   
+class WordForAnalysis(models.Model): # check sentiment analysis, if it is possible to use the sentiment analysis to get the word class, and if it is possible to use the sentiment analysis to get the word position
    WORDCLASS_CHOICES = [
       #spacy abbreviations used: spacy abbreviations: https://spacy.io/api/annotation#pos-tagging
       ('NOUN', 'Noun'), #not used yet
@@ -86,35 +72,100 @@ class WordObjectForAnalysis(models.Model): # check sentiment analysis, if it is 
    word = models.CharField(max_length=250) #even Iceland, Welsh or Dutch has no words with more than 100 characters, so I increased the max_length to 250
    position = models.IntegerField()
    wordclass = models.CharField(max_length=50, choices=WORDCLASS_CHOICES)
-   sentence = models.ForeignKey(
-        SentenceInAnalyticalContext, 
+   lemma_sentences = models.ForeignKey(
+        LemmaSentence, 
         on_delete=models.CASCADE, 
-        related_name="words"
+        related_name="lemma_words"
     )
-   graphic_X_position =  models.IntegerField(default=0)
-   graphic_Y_position =  models.IntegerField(default=0)
-  
+   previous_sentences = models.ForeignKey(
+           PreviousSentence, 
+           on_delete=models.CASCADE, 
+           related_name="previous_words"
+   )
+   following_sentences = models.ForeignKey(
+             FollowingSentence, 
+             on_delete=models.CASCADE, 
+             related_name="following_words"
+   )
    
- 
-class LemmaObjectForAnalysis(models.Model): #lemma is the word in the sentence that is the focus of the analysis, and the sentence is the sentence containing the lemma
-   
+class Lemma(models.Model): #lemma is the word in the sentence that is the focus of the analysis, and the sentence is the sentence containing the lemma
+
    lemma = models.CharField(max_length=250) #even Iceland, Welch or Duch has no words with more than 100 characters, so I increased the max_length to 250
    lemma_position = models.IntegerField()
    
-   sentence = models.ForeignKey(
-        SentenceInAnalyticalContext,
-        on_delete=models.CASCADE,
-        related_name="lemmas"
-    )
-
-
-
-
-class VisualisationOfSentence(models.Model):
-   sentence_svg = models.TextField() 
+   lemma_sentences = models.ForeignKey(
+      LemmaSentence, 
+      on_delete=models.CASCADE, 
+      related_name="lemma_words"
+   )
+   previous_sentences = models.ForeignKey(
+      PreviousSentence, 
+      on_delete=models.CASCADE, 
+      related_name="previous_words"
+   )
+   following_sentences = models.ForeignKey(
+      FollowingSentence, 
+      on_delete=models.CASCADE, 
+      related_name="following_words"
+   )
    
-   sentence = models.ForeignKey(
-        SentenceInAnalyticalContext, 
-        on_delete=models.CASCADE, 
-        related_name="visuel_words"
-    )
+
+   
+# #Build on this Succeded removing that migrate "is missing/or are unabel to find" the Sentence model, and using the new model SentenceInAnalyticalContext instead, which is simpler and more flexible, and can be used for any type of sentence, not just lemma sentences.  The SentenceInAnalyticalContext model can be used to store any sentence in the context of the analysis, including previous and following sentences, and other sentences that are not directly related to the lemma sentence.  The findingID field can be used to link the sentences together, and the sentence field can be used to store the raw text of the sentence.  The SentenceInAnalyticalContext model can be used to store any type of sentence in the context of the analysis, and can be used to build views and templates for displaying the sentences in the context of the analysis.
+# class SentenceInAnalyticalContext(models.Model):
+#    class Meta:
+#       ordering = ['findingID']
+#       # constraints = [
+#       #    models.UniqueConstraint(
+#       #       fields=['findingID', 'sentence_type'],
+#       #       condition=~models.Q(sentence_type='other'),
+#       #       name='unique_sentence_type_per_finding',
+#       #    )
+#       # ]
+      
+#    findingID = models.CharField(max_length=500, db_index=True)
+   
+#    SENTENCE_TYPE = [
+#       ('previous_sentence', 'Previous'),
+#       ('lemma_sentence', 'Lemma Sentence'),
+#       ('following_sentence',   'Following Sentence'), 
+#       ('other', 'Other'),  
+#    ]
+   
+#    CONTAINS_LEMMA_STATUS = [
+#       ('True', 'Contains Lemma'),  
+#       ('False', 'Does Not Contain Lemma'),
+#       ('Unknown', 'Unknown'),
+#    ]
+   
+#    findingID = models.TextField()
+#    sentence =  models.TextField()
+#    #use contains not has_ or is_ as not BooleanField, because it is possible that the sentence does not contain a lemma, but it is not known if it contains a lemma or not, so it is better to use a CharField with choices
+#    contains_lemma = models.CharField(
+#       max_length=10,  null=False, choices=CONTAINS_LEMMA_STATUS, default='Unknown') #ensure need to register if the sentence contains a lemma, so that it is possible to distinguish between the different types of sentences in the database
+#    sentence_type = models.CharField(
+#       max_length=20,  null=False, choices=SENTENCE_TYPE, default='other') #ensure need to register the sentence type, so that it is possible to distinguish between the different types of sentences in the database
+#    words_in_sentence = models.IntegerField(null=True, blank=False) #Null is allowed, Indicate not set
+#    @property
+#    def get_sentence_context(self):
+#         """Return (previous, following) sentence for this finding."""
+#         found = {
+#             s.sentence_type: s
+#             for s in type(self).objects.filter(
+#                 findingID=self.findingID,
+#                 sentence_type__in=['previous_sentence', 'following_sentence'],
+#             )
+#         }
+#         print(f"The type for found in method is:   {type(found)}")
+#         return found.get('previous_sentence'), found.get('following_sentence')
+
+
+
+# class VisualisationOfSentence(models.Model):
+#    sentence_svg = models.TextField() 
+   
+#    sentence = models.ForeignKey(
+#         SentenceInAnalyticalContext, 
+#         on_delete=models.CASCADE, 
+#         related_name="visuel_words"
+#     )

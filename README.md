@@ -1,2 +1,0 @@
-# Lingvistik
-First lingvistik project
