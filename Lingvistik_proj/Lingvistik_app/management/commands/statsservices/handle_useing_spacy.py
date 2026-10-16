@@ -3,7 +3,7 @@ from pydoc import doc
 import spacy
 from spacy import displacy
 import re
-from ....models import ParsedSentence
+from ....models import ParsedSentence, Lemma
 from .handle_svg import make_svg_responsive
 from  .texthandling import remove_filetype, split_literary_text
 def get_sentence_context(doc, target_sent):
@@ -304,23 +304,35 @@ def gramma_in_sentence(sentence, nlp_lang):
            
             advList.append(gramma_obj)
    return adjList, verbList, advList
+
+
+
+def record_lemmas(lemma_sentence_record_obj, nlp_lang):
+   print("Entering record lemma")
+   text =  lemma_sentence_record_obj.lemma_sentence
+   lemma =  lemma_sentence_record_obj. lemma
+   
+   print(f"in record lemmas the lemma is: { lemma} and sentance is {text}")
+   # ----------------------------------
+   # Process text with spaCy
+   # ----------------------------------
+   text =  lemma_sentence_record_obj.lemma_sentence
+   nlp_lang.max_length = max(nlp_lang.max_length, len(text) + 1)
+   doc = nlp_lang(text)
+   designation = lemma_sentence_record_obj.lemma
+   #ensure that designation is lower case
+   designation = designation.lower()
+
+   for sent in doc.sents:
+      # Loop through tokens in sentence
+      for token in sent:
+         # Find lemma matching the designation
+         if token.lemma_.lower() == designation:
+            print("Try to record lemma")
+            position = token.i
             
-   
-                
-   
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+            lemmaobj = Lemma.objects.create(lemma = designation, 
+                                             lemma_position = position,
+                                              lemmasentence=lemma_sentence_record_obj,
+                                             )
+        

@@ -74,22 +74,22 @@ def treesentences(request):
     
     
 def gramma(request):
-   visuel_sentence_holder = VisualisationOfSentence.objects.all()
-   paginator = Paginator(visuel_sentence_holder , 1)  # Show 5 posts per page
-   page_number = request.GET.get('page')
-   try:
-      page_obj = paginator.get_page(page_number)
-   except PageNotAnInteger:
-      page_obj = paginator.page(1)
-   except EmptyPage:
-            page_obj = paginator.page(paginator.num_pages)
+   #visuel_sentence_holder = VisualisationOfSentence.objects.all()
+   #paginator = Paginator(visuel_sentence_holder , 1)  # Show 5 posts per page
+   # page_number = request.GET.get('page')
+   # try:
+   #    page_obj = paginator.get_page(page_number)
+   # except PageNotAnInteger:
+   #    page_obj = paginator.page(1)
+   # except EmptyPage:
+   #          page_obj = paginator.page(paginator.num_pages)
         
-   for sentence in page_obj.object_list:
-            sentence.sentence_svg = sentence.sentence_svg
+   # for sentence in page_obj.object_list:
+   #          sentence.sentence_svg = sentence.sentence_svg
        
-   context = {'page_obj': page_obj}
+   # context = {'page_obj': page_obj}
 
-   return render(request, 'Lingvistik_app/gramma.html',  context)
+   return render(request, 'Lingvistik_app/gramma.html')
 
 
 
@@ -122,16 +122,6 @@ def gramma_grafical_plt(records, quality):
             words = record.words.all() # lemma_sentence_for_analysis_ID
             #get related previous and following sentence (able to map lemmas adj, verbs and advebs for "full" analytical context)
             
-            previous_record = (
-               SentenceInAnalyticalContext.objects
-               .filter(findingID=record.findingID)
-                  .first()
-            )
-            following_record = (
-               SentenceInAnalyticalContext.objects
-                  .filter(findingID=record.findingID)
-               .first()
-            )
             
       ################
          
