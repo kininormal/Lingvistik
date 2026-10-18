@@ -4,7 +4,7 @@ import spacy
 from pathlib import Path
 import pandas as pd
 
-from ... models import  ParsedSentence,  LemmaSentence, PreviousSentence, FollowingSentence, Lemma
+from ... models import  ParsedSentence,  LemmaSentence, PreviousSentence, FollowingSentence, Lemma, Word
 
 from .statsservices.handle_useing_spacy import record_lemmas
 
@@ -13,10 +13,12 @@ class Command(BaseCommand):
    help = 'Update data basis'
 
    def handle(self, *args, **kwargs):
-      # Load English spaCy model
+     
    
       
       BASE_DIR = Path(__file__).resolve().parents[4] 
+      
+      # Load English spaCy model
       nlp_en = spacy.load("en_core_web_sm")
       #Get ParsedSentence record content to meke records able to make desired views
       sentence_context_objects = ParsedSentence.objects.all()
@@ -37,29 +39,28 @@ class Command(BaseCommand):
    
       for lemma_sentence in  lemma_sentence_records:
          createLemmaRecords(lemma_sentence, nlp_en) 
-      #    #createWordRecords(lemma_sentence)
+         createWordRecords(lemma_sentence, nlp_en)
       
       records = LemmaSentence.objects.all()
       
+   
+         
+      print(f"There are {len(records)} lemma records after createLemmaRecords and reateWordRecords")
       
-      for record in records:
-         lemma_sentence_id = record.findingID
-         lemma_sentence = record.lemma_sentence
-         
-         prev_obj = getattr(record, 'previous_sentence', None)
-         fol_obj = getattr(record, 'following_sentence', None)
-         
-         
-         #print(f"lemma sentence with ID: {lemma_sentence_id }\n Has content :{lemma_sentence} \nPrevious sentence { prev_obj.previous_sentence}\n And following  sentence { fol_obj.following_sentence}")
-                  
-         
-         lemma_lemmas = record.analysis_focus.all()
-         previous_lemmas = prev_obj.previous.all()
-         following_lemmas  = fol_obj.following.all()
-         
-         print(f"There is {len(lemma_lemmas)} lemmas in lemma sent PREV had {len(previous_lemmas)}  follow had {len(following_lemmas)}")
+      
+      total_lemmas = Lemma.objects.all()
+      print(f"There are a total of  {len( total_lemmas)}  Lemma records after createLemmaRecords and createWordRecords")
         
-            
+        
+      total_words_for_analysis = Word.objects.all()
+      print(f"There are a total of  {len(total_words_for_analysis)}  Word records after createWordRecords and createLemmaRecord")
+      
+      # lemma_sentence_objs = LemmaSentence.objects.all()
+               
+                  
+
+      
+      
       # print(f"There is {len(lemma_lemmas)} lemmas in lemma sent and {len(previous_lemmas)} lemmas in previous and {len(following_lemmas)} in follow")
          
       
@@ -104,13 +105,10 @@ def createLemmaRecords(lemma_sentence_obj, nlp_lang):
 
    prev_obj = getattr(lemma_sentence_obj, 'previous_sentence', None)
    fol_obj = getattr(lemma_sentence_obj, 'following_sentence', None)
-   
-   
+   #check tat the code wors before reducing
+   #lemma sentence
    text =  lemma_sentence_obj.lemma_sentence
    lemma =  lemma_sentence_obj.lemma
-   # ----------------------------------
-   # Process text with spaCy
-   # ----------------------------------
    nlp_lang.max_length = max(nlp_lang.max_length, len(text) + 1)
    doc = nlp_lang(text)
    #ensure that designation is lower case
@@ -124,7 +122,7 @@ def createLemmaRecords(lemma_sentence_obj, nlp_lang):
             
             lemmaa_record = Lemma.objects.create(lemma = designation, 
                                              lemma_position = position,
-                                             lemmasentence=lemma_sentence_obj,
+                                             lemmasentencelemmas =lemma_sentence_obj,
                                           )
       #lemmas in prev_obj
       text = prev_obj.previous_sentence
@@ -139,7 +137,7 @@ def createLemmaRecords(lemma_sentence_obj, nlp_lang):
                
                lemmaa_record = Lemma.objects.create(lemma = designation, 
                                                 lemma_position = position,
-                                                previoussentence= prev_obj,
+                                                previoussentencelemmas = prev_obj,
                                              )
       #lemmas in following _obj
       text = fol_obj.following_sentence
@@ -151,22 +149,79 @@ def createLemmaRecords(lemma_sentence_obj, nlp_lang):
             # Find lemma matching the designation
             if token.lemma_.lower() == designation:
                position = token.i
-               
                lemmaa_record = Lemma.objects.create(lemma = designation, 
                                                 lemma_position = position,
-                                                followingsentence= fol_obj,
+                                                followingsentencelemmas = fol_obj,
                                              )
 
-   #          prev_obj.previous_sentence
-   #          fol_obj.following_sentence
-   #          print(f"To concider previous { prev_obj.previous_sentence} and following {fol_obj.following_sentence}")
+   
 
-def createWordRecords(lemma_sentence):
-   print(f"lemma sentence with id:{lemma_sentence.findingID} has {lemma_sentence.words_in_lemma_sentence} words")
-   previous_sentence_record = lemma_sentence.previoussentence 
-   print(f"The previous  sentence is :{previous_sentence_record.previous_sentence} and has {previous_sentence_record.words_in_previous_sentence} words")
-   following_sentence_record = lemma_sentence.followingsentence 
-   print(f"The Following sentence is :{following_sentence_record.following_sentence} and has {following_sentence_record.words_in_following_sentence} words")
+def createWordRecords(lemma_sentence_obj, nlp_lang):
+   #check tat the code wors before reducing
+   allowed_pos = {"ADJ", "NOUN", "VERB", "ADV", "PRON", "DET", "ADP", "CONJ", "NUM", "PART", "INTJ"}
+   prev_obj = getattr(lemma_sentence_obj, 'previous_sentence', None)
+   fol_obj = getattr(lemma_sentence_obj, 'following_sentence', None)
+   #words in lemma sentence
+   text =  lemma_sentence_obj.lemma_sentence
+   nlp_lang.max_length = max(nlp_lang.max_length, len(text) + 1)
+   doc = nlp_lang(text)
+
+  
+   for sent in doc.sents:
+    for token in sent:
+       # Spring over, hvis det er decideret tegnsætning eller mellemrum
+        if token.is_punct or token.is_space:
+            continue
+            
+        wordclass = token.pos_ if token.pos_ in allowed_pos else "X"
+        
+        Word.objects.create(
+            word=token.text,
+            position=token.i,
+            wordclass=wordclass,
+            lemmasentencewords = lemma_sentence_obj, # relate to lemma sentence
+        )
+   
+   #words previous sentence
+   text = prev_obj.previous_sentence
+   nlp_lang.max_length = max(nlp_lang.max_length, len(text) + 1)
+   doc = nlp_lang(text)
+
+   for sent in doc.sents:
+      for token in sent:
+         #Spring over, hvis det er decideret tegnsætning eller mellemrum
+         if token.is_punct or token.is_space:
+            continue
+  
+         wordclass = token.pos_ if token.pos_ in allowed_pos else "X"
+         
+         Word.objects.create(
+            word = token.text,  # Brug token.text (eller token.text_with_ws) til databasefelter
+            position = token.i,
+            wordclass = wordclass,
+            previoussentencewords = prev_obj, # relate to previous sentence
+         )    
+   #words following sentence
+   text = fol_obj.following_sentence
+   nlp_lang.max_length = max(nlp_lang.max_length, len(text) + 1)
+   doc = nlp_lang(text)
+
+   for sent in doc.sents:
+      for token in sent:
+         # Spring over, hvis det er decideret tegnsætning eller mellemrum
+         if token.is_punct or token.is_space:
+            continue
+         # Tjek om ordklassen er tilladt, ellers sæt til 'X'
+         wordclass = token.pos_ if token.pos_ in allowed_pos else "X"
+         
+         Word.objects.create(
+            word=token.text,  # Brug token.text (eller token.text_with_ws) til databasefelter
+            position=token.i,
+            wordclass=wordclass,
+            followingsentencewords = fol_obj, # relate to following sentence
+         )    
+   
+   
 
                
 # # # #about stats.py:  https://www.geeksforgeeks.org/python/custom-django-management-commands/      #about manage.py stats

@@ -58,25 +58,25 @@ class FollowingSentence(models.Model):
    
 class Word(models.Model): # check sentiment analysis, if it is possible to use the sentiment analysis to get the word class, and if it is possible to use the sentiment analysis to get the word position
    
-   # analysisfocus = models.ForeignKey(LemmaSentence, related_name='analysis_focus' ,on_delete=models.CASCADE)
-   # previous = models.ForeignKey(PreviousSentence, related_name='previous' ,on_delete=models.CASCADE)
-   # following = models.ForeignKey(FollowingSentence, related_name='follow' ,on_delete=models.CASCADE)
+   lemmasentencewords = models.ForeignKey(LemmaSentence, related_name='words_analysis_focus' ,on_delete=models.CASCADE, null=True, blank=True)
+   previoussentencewords = models.ForeignKey(PreviousSentence, related_name='words_previous' ,on_delete=models.CASCADE, null=True, blank=True)
+   followingsentencewords = models.ForeignKey(FollowingSentence, related_name='words_following' ,on_delete=models.CASCADE, null=True, blank=True)
    
    WORDCLASS_CHOICES = [
       #spacy abbreviations used: spacy abbreviations: https://spacy.io/api/annotation#pos-tagging
-      ('NOUN', 'Noun'), #not used yet
+      ('NOUN', 'Noun'), 
       ('VERB', 'Verb'),
       ('ADJ', 'Adjective'),
       ('ADV', 'Adverb'),
-      ('PRON', 'Pronoun'), #not used yet
-      ('DET', 'Determiner'), #not used yet
-      ('ADP', 'Adposition'), #not used yet
-      ('CONJ', 'Conjunction'), #not used yet
-      ('NUM', 'Numeral'), #not used yet
-      ('PART', 'Particle'), #not used yet
-      ('INTJ', 'Interjection'), #not used yet
-      ('obj', 'Object'), # not a mistake object is written in lowercase, because it is not a part of speech, but a syntactic function
-      ('X', 'Other'), #not generatede  but just in case, I added it to the choices ( sign of problems in the data)
+      ('PRON', 'Pronoun'), 
+      ('DET', 'Determiner'), 
+      ('ADP', 'Adposition'), 
+      ('CONJ', 'Conjunction'), 
+      ('NUM', 'Numeral'), 
+      ('PART', 'Particle'), 
+      ('INTJ', 'Interjection'), 
+      #('obj', 'Object'), # not a mistake object is written in lowercase, because it is not a part of speech, but a syntactic function
+      ('X', 'Other'), 
    ]
    word = models.CharField(max_length=250) #even Iceland, Welsh or Dutch has no words with more than 100 characters, so I increased the max_length to 250
    position = models.IntegerField()
@@ -87,9 +87,9 @@ class Word(models.Model): # check sentiment analysis, if it is possible to use t
    
 class Lemma(models.Model): #lemma is the word in the sentence that is the focus of the analysis, and the sentence is the sentence containing the lemma
 
-   lemmasentence = models.ForeignKey(LemmaSentence, related_name='analysis_focus' ,on_delete=models.CASCADE, null=True, blank=True)
-   previoussentence = models.ForeignKey(PreviousSentence, related_name='previous' ,on_delete=models.CASCADE, null=True, blank=True)
-   followingsentence = models.ForeignKey(FollowingSentence, related_name='following' ,on_delete=models.CASCADE, null=True, blank=True)
+   lemmasentencelemmas = models.ForeignKey(LemmaSentence, related_name='analysis_focus' ,on_delete=models.CASCADE, null=True, blank=True)
+   previoussentencelemmas = models.ForeignKey(PreviousSentence, related_name='previous' ,on_delete=models.CASCADE, null=True, blank=True)
+   followingsentencelemmas = models.ForeignKey(FollowingSentence, related_name='following' ,on_delete=models.CASCADE, null=True, blank=True)
    
    lemma = models.CharField(max_length=250) #even Iceland, Welch or Duch has no words with more than 100 characters, so I increased the max_length to 250
    lemma_position = models.IntegerField()
