@@ -154,11 +154,7 @@ class LemmaSentenceContext(models.Model):
 
 
 
-# class VisualisationOfSentence(models.Model):
-#    sentence_svg = models.TextField() 
+class VisualizationOfLemmaSentence(models.Model):
+   sentence_and_context_svg = models.TextField() 
+   related_findingID = models.CharField(max_length=500)
    
-#    sentence = models.ForeignKey(
-#         SentenceInAnalyticalContext, 
-#         on_delete=models.CASCADE, 
-#         related_name="visuel_words"
-#     )

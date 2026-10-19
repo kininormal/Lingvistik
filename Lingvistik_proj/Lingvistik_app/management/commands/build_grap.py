@@ -24,27 +24,38 @@ class Command(BaseCommand):
             
       print(f"There are {len( lemma_record_objects )} lemma records after createLemmaRecords and reateWordRecords")
       
-      total_lemmas = Lemma.objects.all()
-      print(f"There are a total of  {len( total_lemmas)}  Lemma records after createLemmaRecords and createWordRecords")
+      # total_lemmas = Lemma.objects.all()
+      # print(f"There are a total of  {len( total_lemmas)}  Lemma records after createLemmaRecords and createWordRecords")
          
-      total_words_for_analysis = Word.objects.all()
-      print(f"There are a total of  {len(total_words_for_analysis)}  Word records after createWordRecords and createLemmaRecord")
+      # total_words_for_analysis = Word.objects.all()
+      # print(f"There are a total of  {len(total_words_for_analysis)}  Word records after createWordRecords and createLemmaRecord")
 
 
-      # #lemmas with resorded lemma sentences as anchor
-      # for lemma_record_obj in lemma_record_objects: 
-      #    prev_obj = getattr(lemma_record_obj, 'previous_sentence', None)
-      #    fol_obj = getattr(lemma_record_obj, 'following_sentence', None)
-      #    #print(f"For lemma sentence with ID: {lemma_record_obj.findingID} \n the sentence is: {lemma_record_obj.lemma_sentence} \n The previous sentence is: {prev_obj.previous_sentence} \n the following is {fol_obj.following_sentence} ")
-      #    lemma_objects_lemma_record =  lemma_record_obj.analysis_focus.all()
-      #    lemma_objects_previous_record = prev_obj.previous.all()
-      #    lemma_objects_following_record =  fol_obj.following.all()
-      #    #encure lenght of 0 if no lemmas and not None Type
-      #    if  lemma_objects_previous_record == None:
-      #        lemma_objects_previous_record = []
-      #    if lemma_objects_following_record  == None:
-      #       lemma_objects_following_record = []
-        
+      #lemmas with resorded lemma sentences as anchor
+      for lemma_record_obj in lemma_record_objects: 
+         prev_obj = getattr(lemma_record_obj, 'previous_sentence', None)
+         fol_obj = getattr(lemma_record_obj, 'following_sentence', None)
+         #print(f"For lemma sentence with ID: {lemma_record_obj.findingID} \n the sentence is: {lemma_record_obj.lemma_sentence} \n The previous sentence is: {prev_obj.previous_sentence} \n the following is {fol_obj.following_sentence} ")
+         lemma_objects_lemma_records =  lemma_record_obj.analysis_focus.all()
+         lemma_objects_previous_record = prev_obj.previous.all()
+         lemma_objects_following_record =  fol_obj.following.all()
+         #encure lenght of 0 if no lemmas and not None Type
+         if  lemma_objects_previous_record == None:
+             lemma_objects_previous_record = []
+         if lemma_objects_following_record  == None:
+            lemma_objects_following_record = []
+         # for lemma_object_lemma_record in lemma_objects_lemma_records: 
+       
+         #    words = sentence_obj.words.all() # lemma_sentence_for_analysis_ID
+         #    #get related previous and following sentence (able to map lemmas adj, verbs and advebs for "full" analytical context)
+      
+         #    figures = figures + 1
+         #    quality = 600
+         #    svg_gramma_figure = gramma_grafical_plt(words, quality)
+         #    print(f"Attempt to write figur number {figures} to record in model  VisualisationOfSentence")
+         #    # sentence_record_obj =  VisualisationOfSentence.objects.create(sentence_svg = svg_gramma_figure,
+         #    #                                                                sentence= sentence_obj)
+
       #words with resorded lemma sentences as anchor
       # for words_record_obj in lemma_record_objects: 
       #    prev_obj = getattr(words_record_obj, 'previous_sentence', None)
