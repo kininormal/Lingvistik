@@ -4,24 +4,25 @@ from pathlib import Path
 import re
 import graphviz  
 from graphviz import Digraph
-from ... models import  LemmaSentence, VisualizationOfLemmaSentence
+from ... models import  LemmaSentence, Lemma, Word, VisualizationOfLemmaSentence
 class Command(BaseCommand):
 
    help = 'Traning Graphviz'
   
    def handle(self, *args, **kwargs):
+      #clean  VisualizationOfLemmaSentence
+      init_viz_records =  VisualizationOfLemmaSentence.objects.all().delete()
+      print(f"Initialized to {len( init_viz_records )} visualizationrecords of LemmaSentence before creating visualizationrecords")
+      
+      
       #Build graph form lemma(s) as gramma relasts to lemma
       lemma_sentence_records = LemmaSentence.objects.all()
+      lemma_records  = Lemma.objects.all()
+      word_records = Word.objects.all()
             
-      print(f"There are {len( lemma_sentence_records )} lemma records in LemmaSentence class")
+      print(f"There are {len( lemma_sentence_records )} lemma sentence records of LemmaSentence class")
+      print(f"There are a total of  {len( lemma_records  )} lemma records  and {len(word_records)} word records")
       
-      # total_lemmas = Lemma.objects.all()
-      # print(f"There are a total of  {len( total_lemmas)}  Lemma records after createLemmaRecords and createWordRecords")
-         
-      # total_words_for_analysis = Word.objects.all()
-      # print(f"There are a total of  {len(total_words_for_analysis)}  Word records after createWordRecords and createLemmaRecord")
-   
-
       #lemmas with resorded lemma sentences as anchor
       called = 0
       for lemma_sentence in lemma_sentence_records: 
@@ -41,67 +42,16 @@ class Command(BaseCommand):
          
          sentence_for_visualization_ID = lemma_sentence.findingID  #key ID for current analytical context
          sentence_lemma =  lemma_sentence.lemma # consta
-         print(f"Sentens ID {sentence_for_visualization_ID } with lemma {sentence_lemma} and {len(lemma_sentence_lemma_records )} records of lemmas" )
+         #print(f"Sentens ID {sentence_for_visualization_ID } with lemma {sentence_lemma} and {len(lemma_sentence_lemma_records )} records of lemmas" )
          called = called + 1
          visualize_sentence_lemmas(lemma_sentence_lemma_records, lemma_sentence)
-       
+         
       
       print(f"visualize_sentence_lemmas was called {called} times")
       
+      visualization_records = VisualizationOfLemmaSentence.objects.all()
+      print(f"There are {len(visualization_records )} records with  visualization of lemmas after visualize_sentence_lemmas" )
 
-         # 
-         # return  svg_string
-
-         #lemmas for lemma_record_obj
-         #make  figures for lemmas as figure A, B, C ......... 
-       
-         # 
-      
-    
-      #Check that visualization records are build
-      # visualization_records  =  VisualizationOfLemmaSentence.objects.all()  
-      # print(f"Found creation of {len(visualization_records)} visualization records")          
-               
-         # for index, lemma_object_lemma_record in enumerate(lemma_objects_lemma_records):
-         #    position =  lemma_object_lemma_record.lemma_position  #figure out how to show this in figure (other than combining with sentence_lemma). If more than one lemma len(lemma_objects_lemma_records) > 1 Is it possible use position difference as length of connection
-         #    figure_number = index + 1
-         #    figur_letter = number_to_letter(figure_number )
-         #    print(f"The figure letter is {figur_letter}")
-         #    dot.node(figur_letter, sentence_lemma)
-         # #make  edges between figures for lemmas if more than one lemma in  sentence
-         # if len(lemma_objects_lemma_records) > 1:  #connections to index 0  (handled)
-         #    index_of_last_lemma = len(lemma_objects_lemma_records)
-         #    for level_figure_index in range(1, index_of_last_lemma):
-         #       current_figure_number = level_figure_index +1
-         #       print(f"index for figure at level {level_figure_index}")
-         #       current_lemma = lemma_objects_lemma_records[level_figure_index].lemma
-         #       current_position = lemma_objects_lemma_records[level_figure_index].lemma_position 
-              
-         #       previous_figur_letter = number_to_letter( current_figure_number -1) 
-         #       current_figur_letter = number_to_letter( current_figure_number)  #make letters to connet current to previous 
-
-         #       composition_figur_letter = f"{ previous_figur_letter}{current_figur_letter}"
-              
-         #       dot.edges([composition_figur_letter]) #  connet current to previous
-
-         #    # 1. Hent SVG-indholdet som en streng direkte i hukommelsen
-         #    svg_string_graphviz = dot.pipe(format="svg", encoding="utf-8")
-         #    #svg for record (models.Model)  and use in view NOT MADE YET
-         #    svg_string  = clean_svg(svg_string_graphviz) #  svg_string_graphviz from  graphviz  contains eg  doctype and  xml info
-            
-      dot = Digraph(comment='Min første graf')
-
-      # dot.node('A', 'Sentence')
-      # dot.node('B', 'Visualisation')
-      # dot.node('C', 'Word')
-      dot.node('A', 'King Arthur')  
-      dot.node('B', 'Sir Bedevere the Wise')
-      dot.node('L', 'Sir Lancelot the Brave')
-
-      dot.edges(['AB', 'AL'])
-      dot.edge('B', 'L', constraint='false')
-
-      dot.render('min_graf.svg', view=True)
          
       
       self.stdout.write(self.style.SUCCESS('Successfully ended traning of Graphviz.'))
@@ -127,7 +77,12 @@ def number_to_letter(n):
 from graphviz import Graph
 def visualize_sentence_lemmas(lemma_objects_lemma_records, lemma_record):
    SCALE = 0.8  # inches per position unit; increase if boxes overlap
+   W_SCALE = 1.0
+   has_more_than_one_lemma = False
 
+   if(len(lemma_objects_lemma_records)) > 1:
+      has_more_than_one_lemma = True
+   
    dot = Graph(
       engine="neato",
       graph_attr={"splines": "false"},
@@ -142,10 +97,31 @@ def visualize_sentence_lemmas(lemma_objects_lemma_records, lemma_record):
       x = rec.lemma_position * SCALE
       dot.node(name, rec.lemma, pos=f"{x},0!")   # "!" pins the node
       nodes.append((name, rec.lemma_position))
-
+   
    # connect each node to the previous one
    for (prev_name, prev_pos), (name, pos) in zip(nodes, nodes[1:]):
+      has_more_than_one_lemma = True
       dot.edge(prev_name, name, label=str(pos - prev_pos))  # label optional
+   #word records to relate to lemma
+   #
+   # level 2 connections to  lemmas
+   #
+   word_records = lemma_record.words_analysis_focus.all()
+   #start by only considering sentences with one lemma - NO need to use spacy and sentence to figure out witch lemma the word relate to -> "modify" (adjektive adverb)
+   if  has_more_than_one_lemma == False:
+   #only one name otherwise nanes are in  nodes.append((name, rec.lemma_position))
+      #relate words to lemma. sort words by  position  Show  word,  position and  wordclass 
+      #place according to  position myby length of connection 
+      for index, w_rec in enumerate( word_records):
+          w_name = number_to_letter(index + 1)
+          w_name =  w_name + '1'  # add 1 name to avoid AA problems
+          x  = w_rec.position * W_SCALE
+          dot.node(w_name , w_rec.word, pos=f"{x},0!")   # "!" pins the node
+          dot.edge(name,  w_name , constraint='false') 
+   else:
+     print("MORE THAN ONE LEMMA NOT HANDELD YET")
+   
+   
    
    svg_string_graphviz = dot.pipe(format="svg", encoding="utf-8")
    svg_string = clean_svg(svg_string_graphviz)

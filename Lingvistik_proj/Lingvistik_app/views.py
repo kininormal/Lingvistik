@@ -2,7 +2,7 @@ from django.shortcuts import render, HttpResponse, redirect
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 import spacy
 from spacy import displacy
-from . models import ParsedSentence
+from . models import ParsedSentence, VisualizationOfLemmaSentence
 from .management.commands.statsservices.handle_svg import prepare_svg
 
 
@@ -74,22 +74,23 @@ def treesentences(request):
     
     
 def gramma(request):
-   #visuel_sentence_holder = VisualisationOfSentence.objects.all()
-   #paginator = Paginator(visuel_sentence_holder , 1)  # Show 5 posts per page
-   # page_number = request.GET.get('page')
-   # try:
-   #    page_obj = paginator.get_page(page_number)
-   # except PageNotAnInteger:
-   #    page_obj = paginator.page(1)
-   # except EmptyPage:
-   #          page_obj = paginator.page(paginator.num_pages)
+   visuel_sentence_holder =  VisualizationOfLemmaSentence.objects.all()
+   paginator = Paginator(visuel_sentence_holder , 1)  # Show 5 posts per page
+   page_number = request.GET.get('page')
+   try:
+      page_obj = paginator.get_page(page_number)
+   except PageNotAnInteger:
+      page_obj = paginator.page(1)
+   except EmptyPage:
+            page_obj = paginator.page(paginator.num_pages)
         
-   # for sentence in page_obj.object_list:
-   #          sentence.sentence_svg = sentence.sentence_svg
+   for visual_sentence in page_obj.object_list:
+      print(f"svg content {visual_sentence.sentence_and_context_svg}")
+      visual_sentence.sentence_and_context_svg = visual_sentence.sentence_and_context_svg
        
-   # context = {'page_obj': page_obj}
+   context = {'page_obj': page_obj}
 
-   return render(request, 'Lingvistik_app/gramma.html')
+   return render(request, 'Lingvistik_app/gramma.html',  context  )
 
 
 
