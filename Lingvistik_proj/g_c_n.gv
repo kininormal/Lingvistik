@@ -1,0 +1,8 @@
+graph G {
+	bgcolor="purple:pink" fontcolor=white label=agraph
+	subgraph cluster1 {
+		fillcolor=blue fontcolor=white label=acluster style=filled
+		node [fillcolor=red shape=box style=filled]
+		anode
+	}
+}

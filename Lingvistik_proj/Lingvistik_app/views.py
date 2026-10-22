@@ -85,7 +85,6 @@ def gramma(request):
             page_obj = paginator.page(paginator.num_pages)
         
    for visual_sentence in page_obj.object_list:
-      print(f"svg content {visual_sentence.sentence_and_context_svg}")
       visual_sentence.sentence_and_context_svg = visual_sentence.sentence_and_context_svg
        
    context = {'page_obj': page_obj}

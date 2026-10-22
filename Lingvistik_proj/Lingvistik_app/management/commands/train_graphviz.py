@@ -3,6 +3,7 @@ from collections import defaultdict
 from pathlib import Path
 import re
 import graphviz  
+from html import escape
 from graphviz import Digraph
 from ... models import  LemmaSentence, Lemma, Word, VisualizationOfLemmaSentence
 class Command(BaseCommand):
@@ -11,8 +12,8 @@ class Command(BaseCommand):
   
    def handle(self, *args, **kwargs):
       #clean  VisualizationOfLemmaSentence
-      init_viz_records =  VisualizationOfLemmaSentence.objects.all().delete()
-      print(f"Initialized to {len( init_viz_records )} visualizationrecords of LemmaSentence before creating visualizationrecords")
+      init_viz_records, details =  VisualizationOfLemmaSentence.objects.all().delete()
+      print(f"TEST FASE Initialized to {init_viz_records} visualizationrecords of LemmaSentence before creating visualizationrecords")
       
       
       #Build graph form lemma(s) as gramma relasts to lemma
@@ -38,8 +39,6 @@ class Command(BaseCommand):
          if lemma_objects_following_record  == None:
             lemma_objects_following_record = []
 
-         dot = graphviz.Digraph(comment='First visualisation of lemmas') # one figure per lemma_record_obj
-         
          sentence_for_visualization_ID = lemma_sentence.findingID  #key ID for current analytical context
          sentence_lemma =  lemma_sentence.lemma # consta
          #print(f"Sentens ID {sentence_for_visualization_ID } with lemma {sentence_lemma} and {len(lemma_sentence_lemma_records )} records of lemmas" )
@@ -51,8 +50,9 @@ class Command(BaseCommand):
       
       visualization_records = VisualizationOfLemmaSentence.objects.all()
       print(f"There are {len(visualization_records )} records with  visualization of lemmas after visualize_sentence_lemmas" )
-
+      
          
+            
       
       self.stdout.write(self.style.SUCCESS('Successfully ended traning of Graphviz.'))
       
@@ -76,6 +76,7 @@ def number_to_letter(n):
       
 from graphviz import Graph
 def visualize_sentence_lemmas(lemma_objects_lemma_records, lemma_record):
+   # see structs.py https://graphviz.readthedocs.io/en/stable/examples.html
    SCALE = 0.8  # inches per position unit; increase if boxes overlap
    W_SCALE = 1.0
    has_more_than_one_lemma = False
@@ -83,11 +84,8 @@ def visualize_sentence_lemmas(lemma_objects_lemma_records, lemma_record):
    if(len(lemma_objects_lemma_records)) > 1:
       has_more_than_one_lemma = True
    
-   dot = Graph(
-      engine="neato",
-      graph_attr={"splines": "false"},
-      node_attr={"shape": "box"},
-   )
+   g = graphviz.Graph('G')
+   
 
    records = sorted(lemma_objects_lemma_records, key=lambda r: r.lemma_position)
 
@@ -95,17 +93,46 @@ def visualize_sentence_lemmas(lemma_objects_lemma_records, lemma_record):
    for index, rec in enumerate(records):
       name = number_to_letter(index + 1)
       x = rec.lemma_position * SCALE
-      dot.node(name, rec.lemma, pos=f"{x},0!")   # "!" pins the node
-      nodes.append((name, rec.lemma_position))
-   
+
+   g.attr(bgcolor='purple', label='lemma', fontcolor='white')
+
+   with g.subgraph(name='cluster_description') as c:
+      c.attr(
+         fillcolor='blue',
+         label='Decription',
+         fontcolor='white',
+         style='filled'
+      )
+
+      label = f'''<
+      <TABLE BORDER="1" CELLBORDER="0" CELLSPACING="0"
+            CELLPADDING="6" BGCOLOR="white">
+         <TR>
+               <TD ALIGN="LEFT"><B>Lemma:</B></TD>
+               <TD ALIGN="LEFT"><I>{escape(str(rec.lemma))}</I></TD>
+         </TR>
+         <TR>
+               <TD ALIGN="LEFT"><B>Position:</B></TD>
+               <TD ALIGN="LEFT">{escape(str(rec.lemma_position))}</TD>
+         </TR>
+      </TABLE>
+      >'''
+
+      c.node(
+         f'record_{rec.pk}',
+         label=label,
+         shape='plain',
+         fontname='Arial',
+         fontsize='12'
+      )
+        
    # connect each node to the previous one
    for (prev_name, prev_pos), (name, pos) in zip(nodes, nodes[1:]):
       has_more_than_one_lemma = True
-      dot.edge(prev_name, name, label=str(pos - prev_pos))  # label optional
-   #word records to relate to lemma
+      g.edge(prev_name, name, label=str(pos - prev_pos))  # label optional
    #
-   # level 2 connections to  lemmas
-   #
+   # level 2 word records to relate to lemma 
+   # see structs.py https://graphviz.readthedocs.io/en/stable/examples.html
    word_records = lemma_record.words_analysis_focus.all()
    #start by only considering sentences with one lemma - NO need to use spacy and sentence to figure out witch lemma the word relate to -> "modify" (adjektive adverb)
    if  has_more_than_one_lemma == False:
@@ -114,16 +141,12 @@ def visualize_sentence_lemmas(lemma_objects_lemma_records, lemma_record):
       #place according to  position myby length of connection 
       for index, w_rec in enumerate( word_records):
           w_name = number_to_letter(index + 1)
-          w_name =  w_name + '1'  # add 1 name to avoid AA problems
-          x  = w_rec.position * W_SCALE
-          dot.node(w_name , w_rec.word, pos=f"{x},0!")   # "!" pins the node
-          dot.edge(name,  w_name , constraint='false') 
+        
+       
    else:
      print("MORE THAN ONE LEMMA NOT HANDELD YET")
-   
-   
-   
-   svg_string_graphviz = dot.pipe(format="svg", encoding="utf-8")
+     
+   svg_string_graphviz = g.pipe(format="svg", encoding="utf-8")
    svg_string = clean_svg(svg_string_graphviz)
    VisualizationOfLemmaSentence.objects.create(sentence_and_context_svg = svg_string,
                                                related_findingID = lemma_record.findingID,)

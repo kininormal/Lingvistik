@@ -1,0 +1,14 @@
+graph G {
+	bgcolor=purple fontcolor=white label=word
+	subgraph cluster1 {
+		fillcolor=blue fontcolor=white label=description style=filled
+		node [fillcolor=red shape=box style=filled]
+		anode
+		node [fillcolor=green shape=box style=filled]
+		"next node"
+		node [fillcolor=green shape=box style=filled]
+		"a last node"
+		anode -- "next node" [style=invis]
+		"next node" -- "a last node" [style=invis]
+	}
+}
