@@ -335,4 +335,57 @@ def record_lemmas(lemma_sentence_record_obj, nlp_lang):
                                              lemma_position = position,
                                               lemmasentence=lemma_sentence_record_obj,
                                              )
-        
+
+def find_wordclass_lemma_relations(lemma_record, nlp_lang):
+   text = lemma_record.lemma_sentence
+   lemma_records  = lemma_record.analysis_focus.all() # know that length is > 1 here most often 2
+   print(f"Number of lemma records {len( lemma_records)}")
+   #dict to find lemma wiht lowest dist to hhe head that word are realted to
+   lemma_dict = {}
+   for lemma in lemma_records:
+      lemma_dict = lemma_dict|{lemma.pk : lemma.lemma_position}
+   
+   
+   nlp_lang.max_length = max(nlp_lang.max_length, len(text) + 1) # able to handle extreme long sentence
+   id_of_text =    lemma_record.findingID
+   allowed_pos = {"ADJ", "VERB", "ADV", "PRON"} # of   analytical interest ### NB BUILD THIS AS A SHARE WITH build_view_models
+   print("MORE THAN ONE LEMMA NOT HANDELD FOR WORDS  YET - spacy and sentence to figure out LEMMA that word are related to")
+   print(f"ID of text to analyse: {id_of_text}")
+   print(f"Text to analyse: {text}")
+   #start by not using   allowed_posdoes it work as expected
+   # find words 
+   doc = nlp_lang(text)
+               
+   for token in doc:
+         # Check if the token is an adjective
+         if token.pos_ == "ADJ":
+            # Direct modifier (amod) -> Related to its immediate head
+            if token.dep_ == "amod":
+               related_word = token.head
+               print(f"{token.text:<12} -> {related_word.text:<12} (Direct Modifier)")
+               
+         #     if token.pos_ == "VERB":
+               
+         #         # Direct modifier (amod) -> Related to its immediate head
+         #         if token.dep_ == "amod":
+         #             related_word = token.head
+         #             print(f"{token.text:<12} -> {related_word.text:<12} (Direct Modifier)")
+                     
+                    
+         #     if token.pos_ == "ADV":
+                  
+         #         # Direct modifier (amod) -> Related to its immediate head
+         #         if token.dep_ == "amod":
+         #             related_word = token.head
+         #             print(f"{token.text:<12} -> {related_word.text:<12} (Direct Modifier)")
+            
+         #     if token.pos_ == "PRON":
+                  
+         #         # Direct modifier (amod) -> Related to its immediate head
+         #         if token.dep_ == "amod":
+         #             related_word = token.head
+         #             print(f"{token.text:<12} -> {related_word.text:<12} (Direct Modifier)")
+
+         
+         
+         

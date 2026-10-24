@@ -96,63 +96,6 @@ class Lemma(models.Model): #lemma is the word in the sentence that is the focus 
    #https://dev.to/doridoro/django-several-foreignkey-relations-hj5     NOT NULL constraint failed: Lingvistik_app_lemma.followingsentence_id
    
    
-   
-# # #Build on this Succeded removing that migrate "is missing/or are unabel to find" the Sentence model, and using the new model SentenceInAnalyticalContext instead, which is simpler and more flexible, and can be used for any type of sentence, not just lemma sentences.  The SentenceInAnalyticalContext model can be used to store any sentence in the context of the analysis, including previous and following sentences, and other sentences that are not directly related to the lemma sentence.  The findingID field can be used to link the sentences together, and the sentence field can be used to store the raw text of the sentence.  The SentenceInAnalyticalContext model can be used to store any type of sentence in the context of the analysis, and can be used to build views and templates for displaying the sentences in the context of the analysis.
-# class LemmaSentenceContext(models.Model):
-#    class Meta:
-#       ordering = ['findingID']
-#       # constraints = [
-#       #    models.UniqueConstraint(
-#       #       fields=['findingID', 'sentence_type'],
-#       #       condition=~models.Q(sentence_type='other'),
-#       #       name='unique_sentence_type_per_finding',
-#       #    )
-#       # ]
-      
-#    findingID = models.CharField(max_length=500, db_index=True)
-   
-#    SENTENCE_TYPE = [
-#       ('previous_sentence', 'Previous sentence'),
-#       ('lemma_sentence', 'Lemma sentence'),
-#       ('following_sentence',   'Following sentence'), 
-#       ('other', 'Other'),  
-#    ]
-   
-#    CONTAINS_LEMMA_STATUS = [
-#       ('True', 'Contains Lemma'),  
-#       ('False', 'Does Not Contain Lemma'),
-#       ('Unknown', 'Unknown'),
-#    ]
-   
-#    sentence =  models.TextField()
-#    #use contains not has_ or is_ as not BooleanField, because it is possible that the sentence does not contain a lemma, but it is not known if it contains a lemma or not, so it is better to use a CharField with choices
-#    contains_lemma = models.CharField(
-#       max_length=10,  null=False, choices=CONTAINS_LEMMA_STATUS, default='Unknown') #ensure need to register if the sentence contains a lemma, so that it is possible to distinguish between the different types of sentences in the database
-#    sentence_type = models.CharField(
-#       max_length=20,  null=False, choices=SENTENCE_TYPE, default='other') #ensure need to register the sentence type, so that it is possible to distinguish between the different types of sentences in the database
-#    words_in_sentence = models.IntegerField(null=True, blank=False) #Null is allowed, Indicate not set
-#    @property
-#    def get_sentence_context(self):
-#         """Return (previous, following) sentence for this finding."""
-#         found = {
-#             s.sentence_type: s
-#             for s in type(self).objects.filter(
-#                 findingID=self.findingID,
-#                 sentence_type__in=['previous_sentence', 'following_sentence'],
-#             )
-#         }
-#         if found.get('previous_sentence') == None:
-#            got_previous_sentence = found.get('previous_sentence')
-#         else:
-#            got_previous_sentence = ''  # lemma in first sentence
-#         if found.get('following_sentence') == None:
-#             got_following_sentence = found.get('following_sentence')
-#         else:
-#            got_following_sentence = '' # lemma in last sentence
-#         print(f"The type for found in method is:   {type(found)}")
-#         return found.get('previous_sentence'), found.get('following_sentence')
-
-
 
 class VisualizationOfLemmaSentence(models.Model):
    class Meta:

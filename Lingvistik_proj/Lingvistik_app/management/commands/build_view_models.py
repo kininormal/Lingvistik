@@ -55,18 +55,7 @@ class Command(BaseCommand):
       total_words_for_analysis = Word.objects.all()
       print(f"There are a total of  {len(total_words_for_analysis)}  Word records after createWordRecords and createLemmaRecord")
       
-      # lemma_sentence_objs = LemmaSentence.objects.all()
-               
-                  
 
-      
-      
-      # print(f"There is {len(lemma_lemmas)} lemmas in lemma sent and {len(previous_lemmas)} lemmas in previous and {len(following_lemmas)} in follow")
-         
-      
-      # print("For views in test face the Number of Sentence records from works are: ", len(records) )
-     
-      
       self.stdout.write(self.style.SUCCESS('Successfully EMPTY IN TEST FASE run of building models for views and templates .'))
 
 def createSentenceRecords(sentenceCtxObjects):
@@ -158,7 +147,10 @@ def createLemmaRecords(lemma_sentence_obj, nlp_lang):
 
 def createWordRecords(lemma_sentence_obj, nlp_lang):
    #check tat the code wors before reducing
-   allowed_pos = {"ADJ", "NOUN", "VERB", "ADV", "PRON", "DET", "ADP", "CONJ", "NUM", "PART", "INTJ"}
+   #preperation for taking more gramma into acount
+   #allowed_pos = {"ADJ", "NOUN", "VERB", "ADV", "PRON", "DET", "ADP", "CONJ", "NUM", "PART", "INTJ"}
+   #current gramma for analysis
+   allowed_pos = {"ADJ", "VERB", "ADV", "PRON"} # analytisk interesse 
    prev_obj = getattr(lemma_sentence_obj, 'previous_sentence', None)
    fol_obj = getattr(lemma_sentence_obj, 'following_sentence', None)
    #words in lemma sentence
@@ -168,19 +160,22 @@ def createWordRecords(lemma_sentence_obj, nlp_lang):
 
   
    for sent in doc.sents:
-    for token in sent:
-       # Spring over, hvis det er decideret tegnsætning eller mellemrum
-        if token.is_punct or token.is_space:
+      for token in sent:
+         # Spring over, hvis det er decideret tegnsætning eller mellemrum 
+         if token.is_punct or token.is_space:
             continue
-            
-        wordclass = token.pos_ if token.pos_ in allowed_pos else "X"
-        
-        Word.objects.create(
-            word=token.text,
-            position=token.i,
-            wordclass=wordclass,
-            lemmasentencewords = lemma_sentence_obj, # relate to lemma sentence
-        )
+         #set all wordclasses not in  allowed_pos to X -   allowed_pos is of analytical interest     
+         wordclass = token.pos_ if token.pos_ in allowed_pos else "X"
+         # Spring  visualisring over hvis  wordclass er X - uden analytisk interesse
+         if wordclass == "X":
+            continue
+         
+         Word.objects.create(
+               word=token.text,
+               position=token.i,
+               wordclass=wordclass,
+               lemmasentencewords = lemma_sentence_obj, # relate to lemma sentence
+         )
    
    #words previous sentence
    text = prev_obj.previous_sentence
@@ -225,3 +220,5 @@ def createWordRecords(lemma_sentence_obj, nlp_lang):
 
                
 # # # #about stats.py:  https://www.geeksforgeeks.org/python/custom-django-management-commands/      #about manage.py stats
+
+
