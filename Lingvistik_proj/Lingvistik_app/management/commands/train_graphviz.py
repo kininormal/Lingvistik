@@ -92,13 +92,13 @@ def visualize_sentence_lemmas(lemma_objects_lemma_records, lemma_record):
       name = number_to_letter(index + 1)
 
 
-      g.attr(bgcolor='purple', label='lemma', fontcolor='white')
+      g.attr(bgcolor='purple', label='Lemma and relatede words in selected gramma classes', fontcolor='white')
       
 
       with g.subgraph(name='cluster_description') as c:
          c.attr(
             fillcolor='blue',
-            label='Decription',
+            label='Lemma decription',
             fontcolor='white',
             style='filled'
          )
@@ -153,11 +153,11 @@ def visualize_sentence_lemmas(lemma_objects_lemma_records, lemma_record):
          unique_word_id = w_rec.pk
          w_node_name = number_to_letter(unique_word_id)
          w_node_name = w_node_name + '1'  #string version af hierarkisk nummerering. Sikre: Trods at fx AA aldrig nås for lemmaer  -max tre lemma observeret i sætning - sikres for at det kan ske 
-       
+
          with g.subgraph(name='cluster_word_description') as c:
             c.attr(
-               fillcolor='blue',
-               label='Decription',
+               fillcolor='orange',
+               label='Decription of words',
                fontcolor='white',
                style='filled'
             )

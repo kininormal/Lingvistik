@@ -6,6 +6,46 @@ import re
 from ....models import ParsedSentence, Lemma
 from .handle_svg import make_svg_responsive
 from  .texthandling import remove_filetype, split_literary_text
+
+class GrammaRelations:
+   def __init__(self, gramma_class, is_related):
+      self.name = 'Gramma Relations'
+      self.word = ''
+      self.word_pos = 0
+      self.gramma = gramma_class
+      self.relation = is_related
+      self.lemma = ''
+      self.lemma_position = 0
+      self.lemma_pk = 0
+   def set_word(self, word):
+      self.word =  word
+   def get_word(self):
+      return self.word 
+   def set_word_pos(self, word_pos):
+      self.word_pos =  word_pos
+   def get_word_pos(self):
+      return self.word_pos 
+   def set_gramma(self, grammaclass):
+      self.gramma =  grammaclass
+   def get_gramma(self):
+      return self.gramma
+   def set_relation(self, is_related):
+       self.relation =  is_related
+   def get_relation(self):
+      return  self.relation
+   def set_lemma(self,lemma):
+      self.lemma = lemma
+   def get_lemmas(self):
+      return self.lemma
+   def set_lemma_pos(self,lemma_pos):
+      self.lemma_position = lemma_pos
+   def get_lemma_pos(self):
+      return self.lemma_position
+   def set_lemma_pk(self,lemma_key):
+         self.lemma_pk = lemma_key
+   def get_lemma_pk(self):
+      return self.lemma_pk
+      
 def get_sentence_context(doc, target_sent):
     
     sentences = list(doc.sents)
@@ -252,58 +292,9 @@ def apply_object_values(sentence_obj,  nlp_lang):
         
    return sentence_obj
 
-class Gramma:
-   def __init__(self):
-      self.gramma_cat = None
-      self.word = None
-      self.position = None
-   def set_gramma_cat(self, gramma_cat):
-      self.gamma_cat = gramma_cat
-   def get_gramma_cat(self):
-      return self.gramma_cat
-   def set_word(self, word):
-      self.word = word
-   def get_word(self):
-      return  self.word
-   def set_position(self, position):
-      self.position = position
-   def get_position(self):
-      return self.position 
+
       
-def gramma_in_sentence(sentence, nlp_lang):
-   #allow very long sentences
-   nlp_lang.max_length = max(nlp_lang.max_length, len(sentence) + 1)
-   doc = nlp_lang(sentence)
-   adjList = []
-   verbList = []
-   advList = []
-   for sent in doc.sents:
-      # ----------------------------------
-      # Loop through tokens in sentence
-      # ----------------------------------
-      for token in sent:
-         if token.pos_ == "ADJ":
-            gramma_obj = Gramma()
-            gramma_obj.set_word(token)
-            gramma_obj.set_gramma_cat(token.pos_)
-            gramma_obj.set_position(token.i)
-            
-            adjList.append(gramma_obj)
-         if token.pos_ == "VERB":
-            gramma_obj = Gramma()
-            gramma_obj.set_word(token)
-            gramma_obj.set_gramma_cat(token.pos_)
-            gramma_obj.set_position(token.i)
-                       
-            verbList.append(gramma_obj)
-         if token.pos_ == "ADV":
-            gramma_obj = Gramma()
-            gramma_obj.set_word(token)
-            gramma_obj.set_gramma_cat(token.pos_)
-            gramma_obj.set_position(token.i)
-           
-            advList.append(gramma_obj)
-   return adjList, verbList, advList
+
 
 
 
@@ -337,17 +328,28 @@ def record_lemmas(lemma_sentence_record_obj, nlp_lang):
                                              )
 
 def find_wordclass_lemma_relations(lemma_record, nlp_lang):
+   id_of_text =    lemma_record.findingID
    text = lemma_record.lemma_sentence
    lemma_records  = lemma_record.analysis_focus.all() # know that length is > 1 here most often 2
-   print(f"Number of lemma records {len( lemma_records)}")
+   
+   words_for_lemmas =  lemma_record.words_analysis_focus.all()
+   #sort according to position
+   words_for_lemmas = sorted(words_for_lemmas, key=lambda r: r.position)
+   
+   
    #dict to find lemma wiht lowest dist to hhe head that word are realted to
    lemma_dict = {}
+   #make dict of lemmas in sentence  and their position
    for lemma in lemma_records:
+      print(f"Lemma position {lemma.lemma_position}")
       lemma_dict = lemma_dict|{lemma.pk : lemma.lemma_position}
    
    
    nlp_lang.max_length = max(nlp_lang.max_length, len(text) + 1) # able to handle extreme long sentence
-   id_of_text =    lemma_record.findingID
+   ### NB BUILD the followin  AS A SHARE WITH build_view_models
+   #preperation for taking more gramma into account
+   #allowed_pos = {"ADJ", "NOUN", "VERB", "ADV", "PRON", "DET", "ADP", "CONJ", "NUM", "PART", "INTJ"}
+   #current gramma for analysis
    allowed_pos = {"ADJ", "VERB", "ADV", "PRON"} # of   analytical interest ### NB BUILD THIS AS A SHARE WITH build_view_models
    print("MORE THAN ONE LEMMA NOT HANDELD FOR WORDS  YET - spacy and sentence to figure out LEMMA that word are related to")
    print(f"ID of text to analyse: {id_of_text}")
@@ -356,14 +358,97 @@ def find_wordclass_lemma_relations(lemma_record, nlp_lang):
    # find words 
    doc = nlp_lang(text)
                
-   for token in doc:
-         # Check if the token is an adjective
-         if token.pos_ == "ADJ":
-            # Direct modifier (amod) -> Related to its immediate head
-            if token.dep_ == "amod":
-               related_word = token.head
-               print(f"{token.text:<12} -> {related_word.text:<12} (Direct Modifier)")
+   for token in doc: #doc is lemma_sentence
+     
+      if token.is_punct or token.is_space:  # Only consider words in lemma_sentence allow eg covid-19 to be a sentence
+         continue
+      print(f"Token word to check  {token.text} with pos {token.i}"  )
+   
+      if token.pos_ not in  allowed_pos:   # #Only consider words of analytically interes
+         continue 
+      
+      print(f"Token with gramma {token.pos_} IS OF analytical interest Make analytical context") 
+      grammaObjList = []
+      #stat by having control over gramma class (does it work as expected)
+      for gramma_class in allowed_pos:
+         grammaobj = GrammaRelations(token.pos_, False)
+         print(f"THE GRAMMA CLASS TO consider IS {gramma_class}")
+         if token.pos_ == gramma_class:
+            
+            
+            
+           
+            
+           
+            
+            # find position of wer of  analytical interest, find the word it relates to and the position of the word it relates to  
+            token_position = token.i
+            related_word = token.head
+            related_word_position = related_word.i
+            #Does any lemma has the position that word it relates to -> the word is direct related to the lemma 
+            ###########################################
+             #REGISTER BOTH DIRECT AND NOT DIRECT relatioms 
+             #look up for DIRECT AND NOT DIRECT relatioms
+             #For NOT DIRECT AND NOT DIRECT relatioms  connet by --- or ... line 
+                        
+            ############################################
+                        
+            for lemma_key, lemma_pos in lemma_dict.items():
+               print(f"Sentence: Lemma with key {lemma_key}, and position {lemma_pos}")
+               if lemma_pos == related_word_position:
+                  #pgramma of word is set GrammaRelations(token.pos_, False)
+                  grammaobj.set_lemma_pos(lemma_pos)   #set by register more than needed  in GrammaRelations
+                  grammaobj.set_lemma_pk(lemma_record.pk)    #set by register more than needed  in GrammaRelations
+                  grammaobj.set_lemma(lemma_record.lemma)    #set by register more than needed  in GrammaRelations
+                  grammaobj.set_word(token.text)    #set by register more than needed in GrammaRelations
+                  grammaobj.set_word_pos(token.i)
+                  grammaobj.set_relation(True) #set by register more than needed in GrammaRelations
+                  print(f"There is a direct relation between word {token.text:<12} and lemma with key {lemma_key}")
+                  grammaObjList.append(grammaobj) # make a list of words  directly related  to lemma the gramm kan ber acceced by 
                
+            print(f"There are a current list of {len(grammaObjList)} gramma objects directly related  to lemma")
+            print(f"FOR WORD OF analytical interest") 
+            print(f"token position { token_position  } related position {related_word_position}")
+            print(f"{token.text:<12} -> {related_word.text:<12} (Direct Modifier)")
+         
+      print(f"There are a total list of {len(grammaObjList)} gramma objects dirictly relatedt to lemma")
+      
+         
+         
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      # if token.pos_ == "ADJ":
+      #    # Direct modifier (amod) -> Related to its immediate head
+      #    if token.dep_ == "amod":
+      #       related_word = token.head
+      #       token_position = token.i
+      #       related_word_position = related_word.i
+      #       print(f"token position { token_position  } related position {related_word_position}")
+      #       print(f"{token.text:<12} -> {related_word.text:<12} (Direct Modifier)")
+            
          #     if token.pos_ == "VERB":
                
          #         # Direct modifier (amod) -> Related to its immediate head
