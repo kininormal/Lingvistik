@@ -8,12 +8,13 @@ from .handle_svg import make_svg_responsive
 from  .texthandling import remove_filetype, split_literary_text
 
 class GrammaRelations:
-   def __init__(self, gramma_class, is_related):
+   def __init__(self, gramma_class, lemma_sentence, is_related):
       self.name = 'Gramma Relations'
       self.word = ''
       self.word_pos = 0
       self.gramma = gramma_class
       self.relation = is_related
+      self.lemma_sentence =  lemma_sentence
       self.lemma = ''
       self.lemma_position = 0
       self.lemma_pk = 0
@@ -35,8 +36,10 @@ class GrammaRelations:
       return  self.relation
    def set_lemma(self,lemma):
       self.lemma = lemma
-   def get_lemmas(self):
+   def get_lemma(self):
       return self.lemma
+   def get_lemma_sentence(self):
+      return self.lemma_sentence
    def set_lemma_pos(self,lemma_pos):
       self.lemma_position = lemma_pos
    def get_lemma_pos(self):
@@ -328,94 +331,264 @@ def record_lemmas(lemma_sentence_record_obj, nlp_lang):
                                              )
 
 def find_wordclass_lemma_relations(lemma_record, nlp_lang):
+   #spacy must have sentence to figure out relations 
    id_of_text =    lemma_record.findingID
-   text = lemma_record.lemma_sentence
-   lemma_records  = lemma_record.analysis_focus.all() # know that length is > 1 here most often 2
+   sentence = lemma_record.lemma_sentence
+   lemma =  lemma_record.lemma
    
-   words_for_lemmas =  lemma_record.words_analysis_focus.all()
+   
+   #know that content of words_for_lemma_sentence are of analytical interest
+   words_analysis_interest_lemma_sentence =  lemma_record.words_analysis_focus.all()
    #sort according to position
-   words_for_lemmas = sorted(words_for_lemmas, key=lambda r: r.position)
+   words_for_lemma_sentence = sorted(words_for_lemma_sentence, key=lambda r: r.position)
+   #find_relations(id_of_text, sentence,   words_analysis_interest_lemma_sentence,  lemma)  # know more than one lemma in sentence  sentence contains all word 
    
    
-   #dict to find lemma wiht lowest dist to hhe head that word are realted to
-   lemma_dict = {}
-   #make dict of lemmas in sentence  and their position
-   for lemma in lemma_records:
-      print(f"Lemma position {lemma.lemma_position}")
-      lemma_dict = lemma_dict|{lemma.pk : lemma.lemma_position}
    
    
-   nlp_lang.max_length = max(nlp_lang.max_length, len(text) + 1) # able to handle extreme long sentence
-   ### NB BUILD the followin  AS A SHARE WITH build_view_models
-   #preperation for taking more gramma into account
-   #allowed_pos = {"ADJ", "NOUN", "VERB", "ADV", "PRON", "DET", "ADP", "CONJ", "NUM", "PART", "INTJ"}
-   #current gramma for analysis
-   allowed_pos = {"ADJ", "VERB", "ADV", "PRON"} # of   analytical interest ### NB BUILD THIS AS A SHARE WITH build_view_models
-   print("MORE THAN ONE LEMMA NOT HANDELD FOR WORDS  YET - spacy and sentence to figure out LEMMA that word are related to")
-   print(f"ID of text to analyse: {id_of_text}")
-   print(f"Text to analyse: {text}")
-   #start by not using   allowed_posdoes it work as expected
-   # find words 
-   doc = nlp_lang(text)
+   
+   # #dict to find lemma wiht lowest dist to hhe head that word are realted to
+   # lemma_dict = {}
+   # #make dict of lemmas in sentence  and their position
+   # for lemma in lemma_records:
+   #    print(f"Lemma position {lemma.lemma_position}")
+   #    lemma_dict = lemma_dict|{lemma.pk : lemma.lemma_position}
+   
+   
+   # nlp_lang.max_length = max(nlp_lang.max_length, len(text) + 1) # able to handle extreme long sentence
+   # ### NB BUILD the followin  AS A SHARE WITH build_view_models
+   # #preperation for taking more gramma into account
+   # #allowed_pos = {"ADJ", "NOUN", "VERB", "ADV", "PRON", "DET", "ADP", "CONJ", "NUM", "PART", "INTJ"}
+   # #current gramma for analysis
+   # allowed_pos = {"ADJ", "VERB", "ADV", "PRON"} # of   analytical interest ### NB BUILD THIS AS A SHARE WITH build_view_models
+   # print("MORE THAN ONE LEMMA NOT HANDELD FOR WORDS  YET - spacy and sentence to figure out LEMMA that word are related to")
+   # print(f"ID of text to analyse: {id_of_text}")
+   # print(f"Text to analyse: {text}")
+   # #start by not using   allowed_posdoes it work as expected
+   # # find words 
+   # doc = nlp_lang(text)
                
-   for token in doc: #doc is lemma_sentence
+   # for token in doc: #doc is lemma_sentence
      
-      if token.is_punct or token.is_space:  # Only consider words in lemma_sentence allow eg covid-19 to be a sentence
-         continue
-      print(f"Token word to check  {token.text} with pos {token.i}"  )
+   #    if token.is_punct or token.is_space:  # Only consider words in lemma_sentence allow eg covid-19 to be a sentence
+   #       continue
+   #    print(f"Token word to check  {token.text} with pos {token.i}"  )
    
-      if token.pos_ not in  allowed_pos:   # #Only consider words of analytically interes
-         continue 
+   #    if token.pos_ not in  allowed_pos:   # #Only consider words of analytically interes
+   #       continue 
       
-      print(f"Token with gramma {token.pos_} IS OF analytical interest Make analytical context") 
-      grammaObjList = []
-      #stat by having control over gramma class (does it work as expected)
-      for gramma_class in allowed_pos:
-         grammaobj = GrammaRelations(token.pos_, False)
-         print(f"THE GRAMMA CLASS TO consider IS {gramma_class}")
-         if token.pos_ == gramma_class:
-            
-            
-            
+   #    print(f"Token with gramma {token.pos_} IS OF analytical interest Make analytical context") 
+   #    grammaobj = GrammaRelations(token.pos_, lemma_record.lemma_sentence,  False)
+   #    grammaObjList = []
+   #    #stat by having control over gramma class (does it work as expected)
+   #    for gramma_class in allowed_pos:
+         
+   #       print(f"THE GRAMMA CLASS TO consider IS {gramma_class}")
+   #       if token.pos_ == gramma_class:
            
+         
+   #          # find position of wer of  analytical interest, find the word it relates to and the position of the word it relates to  
+   #          token_position = token.i
+   #          related_word = token.head
+   #          related_word_position = related_word.i
+   #          #Does any lemma has the position that word it relates to -> the word is direct related to the lemma 
+   #          ###########################################
+   #           #REGISTER BOTH DIRECT AND NOT DIRECT relatioms 
+   #           #look up for DIRECT AND NOT DIRECT relatioms
+   #           #For NOT DIRECT AND NOT DIRECT relatioms  connet by --- or ... line 
+                        
+   #          ############################################
+                        
+   #          for lemma_key, lemma_pos in lemma_dict.items():
+   #             print(f"Sentence: Lemma with key {lemma_key}, and position {lemma_pos}")
+   #             grammaobj.set_lemma_pos(lemma_pos)   #set by register more than needed  in GrammaRelations
+   #             grammaobj.set_lemma_pk(lemma_record.pk)    #set by register more than needed  in GrammaRelations
+   #             grammaobj.set_lemma(lemma_record.lemma)    #set by register more than needed  in GrammaRelations
+   #             grammaobj.set_word(token.text)    #set by register more than needed in GrammaRelations
+   #             grammaobj.set_word_pos(token.i)
+   #             if lemma_pos == related_word_position:
+   #                #pgramma of word is set GrammaRelations(token.pos_, False)
+   #                # grammaobj.set_lemma_pos(lemma_pos)   #set by register more than needed  in GrammaRelations
+   #                # grammaobj.set_lemma_pk(lemma_record.pk)    #set by register more than needed  in GrammaRelations
+   #                # grammaobj.set_lemma(lemma_record.lemma)    #set by register more than needed  in GrammaRelations
+   #                # grammaobj.set_word(token.text)    #set by register more than needed in GrammaRelations
+   #                # grammaobj.set_word_pos(token.i)
+   #                grammaobj.set_relation(True) #set by register more than needed in GrammaRelations
+   #                print(f"There is a direct relation between word {token.text:<12} and lemma with key {lemma_key}")
+   #                # grammaObjList.append(grammaobj) # make a list of words  directly related  to lemma the gramm kan ber acceced by
+   #             else:
+   #                grammaobj.set_relation(False) # is set false but set explicite anyway 
+   #             grammaObjList.append(grammaobj) # make a list of GrammaRelations objects where get_relation tells if direct relatet to lemma
             
+            
+   #          # print(f"There are a current list of {len(grammaObjList)} GrammaRelations objects")
+   #          # print(f"FOR WORD OF analytical interest") 
+   #          # print(f"token position { token_position  } related position {related_word_position}")
+   #          # print(f"{token.text:<12} -> {related_word.text:<12} (Direct Modifier)")
+         
+   #    print(f"There are a TOTAL list of {len(grammaObjList)} GrammaRelations objects")
+   #    for grammaObj in grammaObjList:
+   #       if grammaObj.get_relation() == True:
+   #          print(f"FROM GRAMMA OBJ LIST A direct reltion was fund between  {grammaObj.get_word()} with position {grammaObj.get_word_pos()} and lemma  {grammaObj.get_lemma()} at  position {grammaObj.get_lemma_pos()} with key {grammaObj.get_lemma_pk()}")
+   #       else: 
            
-            
-            # find position of wer of  analytical interest, find the word it relates to and the position of the word it relates to  
-            token_position = token.i
-            related_word = token.head
-            related_word_position = related_word.i
-            #Does any lemma has the position that word it relates to -> the word is direct related to the lemma 
-            ###########################################
-             #REGISTER BOTH DIRECT AND NOT DIRECT relatioms 
-             #look up for DIRECT AND NOT DIRECT relatioms
-             #For NOT DIRECT AND NOT DIRECT relatioms  connet by --- or ... line 
-                        
-            ############################################
-                        
-            for lemma_key, lemma_pos in lemma_dict.items():
-               print(f"Sentence: Lemma with key {lemma_key}, and position {lemma_pos}")
-               if lemma_pos == related_word_position:
-                  #pgramma of word is set GrammaRelations(token.pos_, False)
-                  grammaobj.set_lemma_pos(lemma_pos)   #set by register more than needed  in GrammaRelations
-                  grammaobj.set_lemma_pk(lemma_record.pk)    #set by register more than needed  in GrammaRelations
-                  grammaobj.set_lemma(lemma_record.lemma)    #set by register more than needed  in GrammaRelations
-                  grammaobj.set_word(token.text)    #set by register more than needed in GrammaRelations
-                  grammaobj.set_word_pos(token.i)
-                  grammaobj.set_relation(True) #set by register more than needed in GrammaRelations
-                  print(f"There is a direct relation between word {token.text:<12} and lemma with key {lemma_key}")
-                  grammaObjList.append(grammaobj) # make a list of words  directly related  to lemma the gramm kan ber acceced by 
-               
-            print(f"There are a current list of {len(grammaObjList)} gramma objects directly related  to lemma")
-            print(f"FOR WORD OF analytical interest") 
-            print(f"token position { token_position  } related position {related_word_position}")
-            print(f"{token.text:<12} -> {related_word.text:<12} (Direct Modifier)")
-         
-      print(f"There are a total list of {len(grammaObjList)} gramma objects dirictly relatedt to lemma")
-      
+   #          print(f"FROM GRAMMA OBJ LIST NO DIRECT RELATION for word  {grammaObj.get_word()} with gramma {grammaObj.get_gramma()} at  position {grammaObj.get_word_pos()} with a lemma")
+   #          print(f"The sentence is {grammaObj.get_lemma_sentence()}")  
          
          
+###############################################################################
 
+# Extract "meaning modifier" markers (intensifier, downtoner, negation, hedge,
+# reinforcer, concession) relative to a target lemma, across a
+# previous / lemma / following sentence triplet.
+
+# Design notes (see chat for the full explanation):
+# - Sentences are parsed SEPARATELY, not concatenated + re-split, so your
+#   existing sentence boundaries are trusted rather than re-derived by spaCy.
+# - A running token offset gives every token a position in one shared
+#   integer space, so distances are comparable across sentence boundaries.
+# - Category is carried by the Matcher's match_id, so word -> category
+#   lookup never needs a manual dict scan.
+# - One MarkerHit row per marker occurrence (one-to-many vs. your source id).
+# """
+
+from spacy.matcher import Matcher
+from dataclasses import dataclass
+from typing import Optional, List
+
+nlp_lang = spacy.load("en_core_web_sm")
+
+MARKERS = {
+    "intensifier": {
+        "very", "really", "extremely", "highly", "deeply", "utterly",
+        "completely", "totally", "absolutely",
+    },
+    "downtoner": {
+        "rather", "fairly", "quite", "somewhat", "slightly", "barely",
+        "hardly", "almost",
+    },
+    "negation": {
+        "not", "never", "neither", "nor", "no",
+    },
+    "hedge": {
+        "perhaps", "probably", "possibly", "apparently", "seemingly", "maybe",
+    },
+    "reinforcer": {
+        "certainly", "clearly", "indeed", "undoubtedly", "surely", "definitely",
+    },
+    "concession": {
+        "but", "however", "although", "though", "yet", "nevertheless",
+        "nonetheless", "still",
+    },
+}
+
+
+def build_matcher(nlp_lang) -> Matcher:
+    """One Matcher pattern per marker word, keyed by category via match_id.
+    Also doubles as a duplicate-assignment check across categories."""
+    seen = {}
+    matcher = Matcher(nlp_lang.vocab)
+    for category, words in MARKERS.items():
+        for w in words:
+            if w in seen and seen[w] != category:
+                raise ValueError(
+                    f"'{w}' assigned to both '{seen[w]}' and '{category}'"
+                )
+            seen[w] = category
+        patterns = [[{"LOWER": w}] for w in words]
+        matcher.add(category, patterns)
+    return matcher
+
+
+MATCHER = build_matcher(nlp_lang)
+
+
+@dataclass
+class MarkerHit:
+    source_id: str                      # FK back to your existing lemma-sentence id
+    sentence_position: str              # 'previous' | 'lemma' | 'following'
+    marker_text: str                    # surface form, e.g. "Nevertheless"
+    marker_lemma: str                   # spaCy lemma of the marker token
+    marker_category: str                # e.g. 'concession'
+    lemma_present_in_sentence: bool     # target lemma occurs in THIS sentence
+    marker_token_idx: int               # position in the shared 3-sentence space
+    lemma_token_idx: Optional[int]      # anchor token's position, if any
+    distance: Optional[int]             # signed: marker_idx - lemma_idx
+
+
+def process_triplet(
+    source_id: str,
+    prev_text: Optional[str],
+    lemma_text: Optional[str],
+    foll_text: Optional[str],
+    target_lemma: str,
+) -> List[MarkerHit]:
+    """
+    prev_text / lemma_text / foll_text: raw sentence strings, already
+    segmented by your existing pipeline (can be None/"" if missing, e.g.
+    lemma sentence is the first sentence of the work -> no 'previous').
+    target_lemma: the lemma you're tracking, e.g. 'foot'.
+    """
+    parts = [("previous", prev_text), ("lemma", lemma_text), ("following", foll_text)]
+
+    docs, offsets = {}, {}
+    running_offset = 0
+    for name, text in parts:
+        if text:
+            d = nlp_lang(text)
+            docs[name] = d
+            offsets[name] = running_offset
+            running_offset += len(d)
+
+    # Anchor: first occurrence of target_lemma in the lemma sentence.
+    # (If it occurs more than once, this picks the first -- document that
+    # choice if it matters for your analysis, and lemma_token_idx below
+    # lets you always trace back which occurrence was used.)
+    lemma_global_idx = None
+    if "lemma" in docs:
+        for tok in docs["lemma"]:
+            if tok.lemma_.lower() == target_lemma.lower():
+                lemma_global_idx = offsets["lemma"] + tok.i
+                break
+
+    hits: List[MarkerHit] = []
+    for name, doc in docs.items():
+        lemma_present_here = any(
+            t.lemma_.lower() == target_lemma.lower() for t in doc
+        )
+        for match_id, start, _end in MATCHER(doc):
+            token = doc[start]
+            category = nlp_lang.vocab.strings[match_id]
+            global_idx = offsets[name] + token.i
+            distance = (
+                global_idx - lemma_global_idx
+                if lemma_global_idx is not None
+                else None
+            )
+            hits.append(MarkerHit(
+                source_id=source_id,
+                sentence_position=name,
+                marker_text=token.text,
+                marker_lemma=token.lemma_,
+                marker_category=category,
+                lemma_present_in_sentence=lemma_present_here,
+                marker_token_idx=global_idx,
+                lemma_token_idx=lemma_global_idx,
+                distance=distance,
+            ))
+    return hits
+
+
+if __name__ == "__main__":
+    example = process_triplet(
+        source_id="melville-moby-dick_s0042_l01",
+        prev_text="He walked slowly toward the shore.",
+        lemma_text="His foot was certainly not steady on the wet rocks.",
+        foll_text="Nevertheless, he pressed on.",
+        target_lemma="foot",
+    )
+    for hit in example:
+        print(hit)
 
 
 

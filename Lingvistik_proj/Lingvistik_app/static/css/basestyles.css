@@ -1,0 +1,197 @@
+
+
+@charset "UTF-8";
+@import url('https://fonts.googleapis.com/css?family=Merriweather|Roboto');
+@import url('https://fonts.cdnfonts.com/css/georgia');
+
+html, body {
+    padding: 0px 0px 0px 0px; /*top right bottom left */
+    width: 100vw;
+    height: 100vh;
+    background-color: lightgrey;
+}
+
+main {
+   display: block;
+   width: 100vw;
+   height: 100vh;
+}
+
+table {
+   display: block;
+   padding: 0vh 0vw 0vh 0vw; /*  top right bottom left */
+   width: 100vw;
+   height: 100vh;
+}
+
+tbody {
+   display: block;
+   padding: 0vh 0vw 0vh 0vw; /*  top right bottom left */
+   width: 100vw;
+   height: 100vh;
+}
+
+tr {
+   padding: 0vh 5vw 0vh 5vw; /*  top right bottom left */
+   width: 100vw;
+}
+
+tr.images {
+   height: 30vh;
+}
+
+tr.interactions {
+   height: 7vh;
+}
+
+
+td {
+   width: 40vw;
+}
+
+td.titanicpred {
+   display: table-cell;
+}
+
+.borders {
+   border-left:  0.2vw solid black;
+   border-right: 0.2vw solid black;
+}
+
+.borders.top {
+   border-top: 0.2vw solid black;
+}
+
+.borders.bottom {
+  
+   border-bottom: 0.2vw solid black;
+}
+
+
+h1 {
+   display: block;
+   font-family: Merriweather;
+   text-align: left;
+   font-size: 2.7vh;
+   font-style: bold;
+   font-variant: normal;
+   text-decoration: none;
+   color: #000000;
+   padding: 3vh 0px 0px 1vw; /* top right bottom left */
+}
+
+form {
+   display: block;
+   padding: 0vh 0px 0px 0vw; /* top right bottom left */
+}
+
+
+img {
+   display:inline;
+   margin: 0px, 0px 0px 0px; /* top right bottom left */
+   border: 0px 0px 0px 0px;  /* top right bottom left  */
+   padding: 0vh 0vw 0vh 0vw; /*  top right bottom left */
+   width: 30vw;
+   height: 30vh;
+   object-fit: contain;
+}
+
+
+label {
+   display: inline;
+   padding: 0vh 0vw 0vh 0vw; /* top right bottom left */
+}
+
+span {
+   display: inline;
+   padding: 0vh 0vw 0vh 0vw; /* top right bottom left */
+}
+
+.datasettxt {
+   font-family: Roboto;
+   text-align: left;
+   font-size: 3vh;
+   font-style: bold;
+   font-variant: normal;
+   font-weight: 600;
+}
+
+input {
+   display: inline;
+}
+
+input[type=radio] {
+   display: inline;
+   border: 0px;
+   width: 2.2vh;
+   height: 2.2vh;
+}
+
+select {
+  display: inline;
+
+}
+
+option {
+   display: inline-block;
+   z-index: 2;
+   font-family: Roboto;
+   text-align: left;
+   font-size: 2.5vh;
+   color: blue;
+   font-style: bold;
+   font-variant: normal;
+   width: 9vw;
+   background-color: lightgray;
+   font-weight: 600;
+}
+
+.presentation-dropdown { 
+   display: none; /* script */
+   font-family: Roboto;
+   text-align: left;
+   font-size: 2.2vh;
+   font-style: normal;
+   font-variant: normal;
+   font-weight: 600;
+}
+
+button {
+   display: block;
+   font-family: Roboto;
+   text-align: left;
+   font-size: 2.7vh;
+   font-style: bold;
+   font-variant: normal;
+   font-weight: 600;
+   background-color: greenyellow;
+}
+
+
+h2 {
+   display: block;
+   font-family: Roboto;
+   text-align: left;
+   font-size: 2.3vh;
+   font-style: normal;
+   font-variant: normal;
+   font-weight: bold;
+   text-decoration: none;
+   color: #000000;
+   padding: 0px 0px 0px 0px; /* top right bottom left */
+}
+
+
+p {
+   display: block;
+   font-family: Roboto;
+   text-align: left;
+   font-size: 2.0vh;
+   font-style: normal;
+   font-variant: normal;
+   font-weight: 600;
+   text-decoration: none;
+   color: #000000;
+   padding: 0px 0px 0px 0px; /* top right bottom left */
+   margin: 0.8vh 0px 0.1vh 0px; /* top right bottom left */
+}
