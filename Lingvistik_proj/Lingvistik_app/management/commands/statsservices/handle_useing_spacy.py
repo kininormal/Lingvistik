@@ -7,47 +7,7 @@ from ....models import ParsedSentence, Lemma
 from .handle_svg import make_svg_responsive
 from  .texthandling import remove_filetype, split_literary_text
 
-class GrammaRelations:
-   def __init__(self, gramma_class, lemma_sentence, is_related):
-      self.name = 'Gramma Relations'
-      self.word = ''
-      self.word_pos = 0
-      self.gramma = gramma_class
-      self.relation = is_related
-      self.lemma_sentence =  lemma_sentence
-      self.lemma = ''
-      self.lemma_position = 0
-      self.lemma_pk = 0
-   def set_word(self, word):
-      self.word =  word
-   def get_word(self):
-      return self.word 
-   def set_word_pos(self, word_pos):
-      self.word_pos =  word_pos
-   def get_word_pos(self):
-      return self.word_pos 
-   def set_gramma(self, grammaclass):
-      self.gramma =  grammaclass
-   def get_gramma(self):
-      return self.gramma
-   def set_relation(self, is_related):
-       self.relation =  is_related
-   def get_relation(self):
-      return  self.relation
-   def set_lemma(self,lemma):
-      self.lemma = lemma
-   def get_lemma(self):
-      return self.lemma
-   def get_lemma_sentence(self):
-      return self.lemma_sentence
-   def set_lemma_pos(self,lemma_pos):
-      self.lemma_position = lemma_pos
-   def get_lemma_pos(self):
-      return self.lemma_position
-   def set_lemma_pk(self,lemma_key):
-         self.lemma_pk = lemma_key
-   def get_lemma_pk(self):
-      return self.lemma_pk
+
       
 def get_sentence_context(doc, target_sent):
     
@@ -332,54 +292,20 @@ def record_lemmas(lemma_sentence_record_obj, nlp_lang):
 
 def find_wordclass_lemma_relations(lemma_record, nlp_lang):
    #spacy must have sentence to figure out relations 
-   id_of_text =    lemma_record.findingID
-   sentence = lemma_record.lemma_sentence
-   lemma =  lemma_record.lemma
+   
+   lemmainfoobjs = handle_lemma_sentence(lemma_record)
+   print(f"For lemma sentence with id  {lemma_record.findingID} there are {len(lemmainfoobjs)} lemma info objects")
+   words_of_analytical_interest_infoobjs = handle_words_for_lemma_sentence(lemma_record)
+   print(f"For lemma sentence with id  {lemma_record.findingID} there are {len(words_of_analytical_interest_infoobjs)} words of analytical intrest")
+   for  words_of_analytical_interst in  words_of_analytical_interest_infoobjs:
+      print(f"word: { words_of_analytical_interst.word } with gramma {words_of_analytical_interst.gramma_class} is of interst")
    
    
-   #know that content of words_for_lemma_sentence are of analytical interest
-   words_analysis_interest_lemma_sentence =  lemma_record.words_analysis_focus.all()
-   #sort according to position
-   words_for_lemma_sentence = sorted(words_for_lemma_sentence, key=lambda r: r.position)
-   #find_relations(id_of_text, sentence,   words_analysis_interest_lemma_sentence,  lemma)  # know more than one lemma in sentence  sentence contains all word 
+   sentenceinfoobjs = handle_lemma_sentence_content(lemma_record, words_of_analytical_interest_infoobjs, nlp_lang)
+   print(f"For the sentence with id {lemma_record.findingID} there are {len(sentenceinfoobjs)} sentence object to check for relationship")
    
    
    
-   
-   
-   # #dict to find lemma wiht lowest dist to hhe head that word are realted to
-   # lemma_dict = {}
-   # #make dict of lemmas in sentence  and their position
-   # for lemma in lemma_records:
-   #    print(f"Lemma position {lemma.lemma_position}")
-   #    lemma_dict = lemma_dict|{lemma.pk : lemma.lemma_position}
-   
-   
-   # nlp_lang.max_length = max(nlp_lang.max_length, len(text) + 1) # able to handle extreme long sentence
-   # ### NB BUILD the followin  AS A SHARE WITH build_view_models
-   # #preperation for taking more gramma into account
-   # #allowed_pos = {"ADJ", "NOUN", "VERB", "ADV", "PRON", "DET", "ADP", "CONJ", "NUM", "PART", "INTJ"}
-   # #current gramma for analysis
-   # allowed_pos = {"ADJ", "VERB", "ADV", "PRON"} # of   analytical interest ### NB BUILD THIS AS A SHARE WITH build_view_models
-   # print("MORE THAN ONE LEMMA NOT HANDELD FOR WORDS  YET - spacy and sentence to figure out LEMMA that word are related to")
-   # print(f"ID of text to analyse: {id_of_text}")
-   # print(f"Text to analyse: {text}")
-   # #start by not using   allowed_posdoes it work as expected
-   # # find words 
-   # doc = nlp_lang(text)
-               
-   # for token in doc: #doc is lemma_sentence
-     
-   #    if token.is_punct or token.is_space:  # Only consider words in lemma_sentence allow eg covid-19 to be a sentence
-   #       continue
-   #    print(f"Token word to check  {token.text} with pos {token.i}"  )
-   
-   #    if token.pos_ not in  allowed_pos:   # #Only consider words of analytically interes
-   #       continue 
-      
-   #    print(f"Token with gramma {token.pos_} IS OF analytical interest Make analytical context") 
-   #    grammaobj = GrammaRelations(token.pos_, lemma_record.lemma_sentence,  False)
-   #    grammaObjList = []
    #    #stat by having control over gramma class (does it work as expected)
    #    for gramma_class in allowed_pos:
          
@@ -454,7 +380,7 @@ def find_wordclass_lemma_relations(lemma_record, nlp_lang):
 
 from spacy.matcher import Matcher
 from dataclasses import dataclass
-from typing import Optional, List
+from typing import Optional, List, Dict
 
 nlp_lang = spacy.load("en_core_web_sm")
 
@@ -591,16 +517,94 @@ if __name__ == "__main__":
         print(hit)
 
 
+def handle_lemma_sentence(lemma_record):
+   id_of_text =    lemma_record.findingID
+   sentence = lemma_record.lemma_sentence
+   lemma =  lemma_record.lemma
+   lemma_content_records = lemma_record.analysis_focus.all()
+   
+   lemmainfo: List[LemmaInLemmaSentence] = []
+   for lemma in  lemma_content_records:
+      lemmainfo.append(LemmaInLemmaSentence(
+                      lemma_pk = lemma.pk,
+                      lemma = lemma.lemma,
+                      lemma_position =lemma.lemma_position,
+                  ))
+   return lemmainfo
 
 
+def handle_words_for_lemma_sentence(lemma_record):
+   words_lemma_sentence = lemma_record.words_analysis_focus.all() # only words of analytical interest are here via build_view_models deciding gramma of analytical  interest
+   words_lemma_sentence = sorted( words_lemma_sentence, key=lambda r: r.position) #order words by position
+   wordinfo: List[WordForAnalysis] = []
+   for word in words_lemma_sentence:
+      wordinfo.append(WordForAnalysis(
+                     word = word.word,
+                     word_position = word.position, 
+                     gramma_class = word.wordclass,))
+      
+   return wordinfo
+
+def handle_lemma_sentence_content(lemma_record, info_of_words_objs, nlp_lang):
+   lemma_sentence_info: List[LemmaInLemmaSentence] = []
+   text = lemma_record.lemma_sentence
+   print(f"Whole sentence to analyse {text} ")
+   #register used wordclasses  -> make a class to access used grammas
+
+   allowed_pos = {} #get  allowed_pos form words. Words are determined by relevant gramma set in build_view_models
+   for info_of_word in info_of_words_objs:
+      if info_of_word.gramma_class not in  allowed_pos:
+       allowed_pos = info_of_word.gramma_class
+      
+   
+   
+   nlp_lang.max_length = max(nlp_lang.max_length, len(text) + 1) # able to handle extreme long sentence
+   doc = nlp_lang(text)       
+   for token in doc: #doc is lemma sentence to analyse
+      # Only consider whole words in lemma sentence, allow eg COVID-19 to be word
+      if token.is_punct or token.is_space:  
+         continue
+      # #Only consider words of analytically interes
+      if token.pos_ not in  allowed_pos:  
+         continue 
+       
+      # print(f"CHECK WHOLE WORDS Token word to check  {token.text} with pos {token.i} and gramma {token.pos_}"  )
+      lemma_sentence_info.append(LemmaSentenceWords(
+                                                    word = token.text,
+                                                    word_position =  token.i,
+                                                    gramma_class =  token.pos_,
+                                                    gramma_related_to_word =  token.head,
+                                                    gramma_related_to_word_at_pos = token.head.i,
+      ))
+    
+   print(f"Returning from handle lema sentese with {len(lemma_sentence_info)} info objs"  )
+   return lemma_sentence_info
+      
+    
+   
+
+   
+#################################################   
+@dataclass
+class LemmaInLemmaSentence :
+   lemma: str 
+   lemma_position: int             
+   lemma_pk: str  
+
+@dataclass
+class WordForAnalysis:
+   word: str 
+   word_position: int             
+   gramma_class: str   #  gramma of analytical  interest in record   
 
 
-
-
-
-
-
-
+@dataclass
+class LemmaSentenceWords:
+   word: str 
+   word_position: int             
+   gramma_class: str  
+   gramma_related_to_word: str 
+   gramma_related_to_word_at_pos: int
 
 
 
