@@ -291,78 +291,25 @@ def record_lemmas(lemma_sentence_record_obj, nlp_lang):
                                              )
 
 def find_wordclass_lemma_relations(lemma_record, nlp_lang):
-   #spacy must have sentence to figure out relations 
+   print(f"More than one lemma in sentence to analyse ")
    
    lemmainfoobjs = handle_lemma_sentence(lemma_record)
    print(f"For lemma sentence with id  {lemma_record.findingID} there are {len(lemmainfoobjs)} lemma info objects")
    words_of_analytical_interest_infoobjs = handle_words_for_lemma_sentence(lemma_record)
-   print(f"For lemma sentence with id  {lemma_record.findingID} there are {len(words_of_analytical_interest_infoobjs)} words of analytical intrest")
-   for  words_of_analytical_interst in  words_of_analytical_interest_infoobjs:
-      print(f"word: { words_of_analytical_interst.word } with gramma {words_of_analytical_interst.gramma_class} is of interst")
+   # print(f"For lemma sentence with id  {lemma_record.findingID} there are {len(words_of_analytical_interest_infoobjs)} words of analytical intrest")
+   # for  words_of_analytical_interst in  words_of_analytical_interest_infoobjs:
+   #    print(f"word: { words_of_analytical_interst.word } with gramma {words_of_analytical_interst.gramma_class} is of interst")
    
-   
+   #get words of analyticaly interest with gramma, position the word, the word it is adj, adver -.. to the position   from the "raw" lemma sentence using the access in lemma_record
    sentenceinfoobjs = handle_lemma_sentence_content(lemma_record, words_of_analytical_interest_infoobjs, nlp_lang)
    print(f"For the sentence with id {lemma_record.findingID} there are {len(sentenceinfoobjs)} sentence object to check for relationship")
-   
-   
-   
-   #    #stat by having control over gramma class (does it work as expected)
-   #    for gramma_class in allowed_pos:
-         
-   #       print(f"THE GRAMMA CLASS TO consider IS {gramma_class}")
-   #       if token.pos_ == gramma_class:
-           
-         
-   #          # find position of wer of  analytical interest, find the word it relates to and the position of the word it relates to  
-   #          token_position = token.i
-   #          related_word = token.head
-   #          related_word_position = related_word.i
-   #          #Does any lemma has the position that word it relates to -> the word is direct related to the lemma 
-   #          ###########################################
-   #           #REGISTER BOTH DIRECT AND NOT DIRECT relatioms 
-   #           #look up for DIRECT AND NOT DIRECT relatioms
-   #           #For NOT DIRECT AND NOT DIRECT relatioms  connet by --- or ... line 
-                        
-   #          ############################################
-                        
-   #          for lemma_key, lemma_pos in lemma_dict.items():
-   #             print(f"Sentence: Lemma with key {lemma_key}, and position {lemma_pos}")
-   #             grammaobj.set_lemma_pos(lemma_pos)   #set by register more than needed  in GrammaRelations
-   #             grammaobj.set_lemma_pk(lemma_record.pk)    #set by register more than needed  in GrammaRelations
-   #             grammaobj.set_lemma(lemma_record.lemma)    #set by register more than needed  in GrammaRelations
-   #             grammaobj.set_word(token.text)    #set by register more than needed in GrammaRelations
-   #             grammaobj.set_word_pos(token.i)
-   #             if lemma_pos == related_word_position:
-   #                #pgramma of word is set GrammaRelations(token.pos_, False)
-   #                # grammaobj.set_lemma_pos(lemma_pos)   #set by register more than needed  in GrammaRelations
-   #                # grammaobj.set_lemma_pk(lemma_record.pk)    #set by register more than needed  in GrammaRelations
-   #                # grammaobj.set_lemma(lemma_record.lemma)    #set by register more than needed  in GrammaRelations
-   #                # grammaobj.set_word(token.text)    #set by register more than needed in GrammaRelations
-   #                # grammaobj.set_word_pos(token.i)
-   #                grammaobj.set_relation(True) #set by register more than needed in GrammaRelations
-   #                print(f"There is a direct relation between word {token.text:<12} and lemma with key {lemma_key}")
-   #                # grammaObjList.append(grammaobj) # make a list of words  directly related  to lemma the gramm kan ber acceced by
-   #             else:
-   #                grammaobj.set_relation(False) # is set false but set explicite anyway 
-   #             grammaObjList.append(grammaobj) # make a list of GrammaRelations objects where get_relation tells if direct relatet to lemma
-            
-            
-   #          # print(f"There are a current list of {len(grammaObjList)} GrammaRelations objects")
-   #          # print(f"FOR WORD OF analytical interest") 
-   #          # print(f"token position { token_position  } related position {related_word_position}")
-   #          # print(f"{token.text:<12} -> {related_word.text:<12} (Direct Modifier)")
-         
-   #    print(f"There are a TOTAL list of {len(grammaObjList)} GrammaRelations objects")
-   #    for grammaObj in grammaObjList:
-   #       if grammaObj.get_relation() == True:
-   #          print(f"FROM GRAMMA OBJ LIST A direct reltion was fund between  {grammaObj.get_word()} with position {grammaObj.get_word_pos()} and lemma  {grammaObj.get_lemma()} at  position {grammaObj.get_lemma_pos()} with key {grammaObj.get_lemma_pk()}")
-   #       else: 
-           
-   #          print(f"FROM GRAMMA OBJ LIST NO DIRECT RELATION for word  {grammaObj.get_word()} with gramma {grammaObj.get_gramma()} at  position {grammaObj.get_word_pos()} with a lemma")
-   #          print(f"The sentence is {grammaObj.get_lemma_sentence()}")  
+   gramma_relationship(lemma_record , sentenceinfoobjs)
+
          
          
-###############################################################################
+         
+         
+#################### Toulmin argument model alike ###########################################################
 
 # Extract "meaning modifier" markers (intensifier, downtoner, negation, hedge,
 # reinforcer, concession) relative to a target lemma, across a
@@ -548,10 +495,9 @@ def handle_words_for_lemma_sentence(lemma_record):
 def handle_lemma_sentence_content(lemma_record, info_of_words_objs, nlp_lang):
    lemma_sentence_info: List[LemmaInLemmaSentence] = []
    text = lemma_record.lemma_sentence
-   print(f"Whole sentence to analyse {text} ")
-   #register used wordclasses  -> make a class to access used grammas
-
-   allowed_pos = {} #get  allowed_pos form words. Words are determined by relevant gramma set in build_view_models
+   print(f"Whole sentence to analyse in handle_lemma_sentence_content: {text} ")
+   #register used wordclasses  -> make a class to access used grammas #get  allowed_pos form words. Words are determined by relevant gramma set in build_view_models
+   allowed_pos = {}
    for info_of_word in info_of_words_objs:
       if info_of_word.gramma_class not in  allowed_pos:
        allowed_pos = info_of_word.gramma_class
@@ -576,15 +522,30 @@ def handle_lemma_sentence_content(lemma_record, info_of_words_objs, nlp_lang):
                                                     gramma_related_to_word =  token.head,
                                                     gramma_related_to_word_at_pos = token.head.i,
       ))
-    
-   print(f"Returning from handle lema sentese with {len(lemma_sentence_info)} info objs"  )
+
    return lemma_sentence_info
       
-    
+def gramma_relationship(lemma_rec, lst_of_lemmasentenceWords_objs):
    
-
+   #missing lemma-position
+    #missing lemma-pk
+   #direct relation 
+   for lemmasentenceWord in lst_of_lemmasentenceWords_objs:
+      if  lemmasentenceWord.gramma_related_to_word == lemma_rec.lemma:
+         lemmasentenceWord.is_direct_relatede = True
+      else:
+         lemmasentenceWord.is_direct_relatede = False
+   #nearest to 
+   for lemmasentenceWord in lst_of_lemmasentenceWords_objs: 
+      word_pos_in_sentence = lemmasentenceWord.word_position   
+      dist = 1000000        
+      gramma_class_in_sentence = lemmasentenceWord.gramma_class  
+      for lemma in lemma_rec.analysis_focus.all(): # all lemmas for lemma sentence
+         if abs(lemma.lemma_position - word_pos_in_sentence) < dist:
+            dist = abs(lemma.lemma_position - word_pos_in_sentence)
+      print(f"The min dist between {lemmasentenceWord.word } grammaclass {gramma_class_in_sentence} and a lemma is {dist} ")
    
-#################################################   
+   
 @dataclass
 class LemmaInLemmaSentence :
    lemma: str 
@@ -605,49 +566,8 @@ class LemmaSentenceWords:
    gramma_class: str  
    gramma_related_to_word: str 
    gramma_related_to_word_at_pos: int
+   is_direct_relatede: bool = False
+   is_nearest: bool = False
+  
 
-
-
-
-
-
-
-
-
-
-
-
-      # if token.pos_ == "ADJ":
-      #    # Direct modifier (amod) -> Related to its immediate head
-      #    if token.dep_ == "amod":
-      #       related_word = token.head
-      #       token_position = token.i
-      #       related_word_position = related_word.i
-      #       print(f"token position { token_position  } related position {related_word_position}")
-      #       print(f"{token.text:<12} -> {related_word.text:<12} (Direct Modifier)")
-            
-         #     if token.pos_ == "VERB":
-               
-         #         # Direct modifier (amod) -> Related to its immediate head
-         #         if token.dep_ == "amod":
-         #             related_word = token.head
-         #             print(f"{token.text:<12} -> {related_word.text:<12} (Direct Modifier)")
-                     
-                    
-         #     if token.pos_ == "ADV":
-                  
-         #         # Direct modifier (amod) -> Related to its immediate head
-         #         if token.dep_ == "amod":
-         #             related_word = token.head
-         #             print(f"{token.text:<12} -> {related_word.text:<12} (Direct Modifier)")
-            
-         #     if token.pos_ == "PRON":
-                  
-         #         # Direct modifier (amod) -> Related to its immediate head
-         #         if token.dep_ == "amod":
-         #             related_word = token.head
-         #             print(f"{token.text:<12} -> {related_word.text:<12} (Direct Modifier)")
-
-         
-         
          

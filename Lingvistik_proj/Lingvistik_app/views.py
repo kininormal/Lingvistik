@@ -2,7 +2,7 @@ from django.shortcuts import render, HttpResponse, redirect
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 import spacy
 from spacy import displacy
-from . models import ParsedSentence, VisualizationOfLemmaSentence
+from . models import ParsedSentence, VisualizationOfLemmaSentence, ToulminVisualization
 from .management.commands.statsservices.handle_svg import prepare_svg
 
 
@@ -83,7 +83,7 @@ def gramma(request):
       page_obj = paginator.page(1)
    except EmptyPage:
             page_obj = paginator.page(paginator.num_pages)
-        
+   # sentence_and_context_sv can be handled further    
    for visual_sentence in page_obj.object_list:
       visual_sentence.sentence_and_context_svg = visual_sentence.sentence_and_context_svg
        
@@ -91,7 +91,26 @@ def gramma(request):
 
    return render(request, 'Lingvistik_app/gramma.html',  context  )
 
-
+def toulmin(request):
+    diagramlist = []
+ 
+    sentence_holder = ToulminVisualization.objects.all()
+    paginator = Paginator(sentence_holder, 20)  # Show 5 posts per page
+    page_number = request.GET.get('page')
+    try:
+        page_obj = paginator.get_page(page_number)
+    except PageNotAnInteger:
+        page_obj = paginator.page(1)
+    except EmptyPage:
+        page_obj = paginator.page(paginator.num_pages)
+    
+    #.toulmin_svg can be handled further
+    for sentence in page_obj.object_list:
+        sentence.toulmin_svg  = sentence.toulmin_svg 
+   
+    context = {'page_obj': page_obj}
+    
+    return render(request, 'Lingvistik_app/toulmin.html', context)
 
 
 

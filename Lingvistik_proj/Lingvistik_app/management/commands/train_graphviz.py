@@ -128,9 +128,8 @@ def visualize_sentence_lemmas(lemma_objects_lemma_records, lemma_record):
         
    # if more than one lemma in sentence connect  (records is sorted by lemma position )
    
-   if len(records) > 1:
-      print(f"More than one lemma in sentence wiht id {lemma_record.findingID}")
-      
+   if has_more_than_one_lemma == True:
+      print(f"CONNECT prev lemma to follow lemma: More than one lemma in sentence with id {lemma_record.findingID}")
       for rec_index in range(1, len(records)):
          prev_index_name =  rec_index  # name of node is index + 1
          prev_index_name = f'record_{prev_index_name}'
