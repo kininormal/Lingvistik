@@ -75,7 +75,7 @@ def treesentences(request):
     
 def gramma(request):
    visuel_sentence_holder =  VisualizationOfLemmaSentence.objects.all()
-   paginator = Paginator(visuel_sentence_holder , 1)  # Show 5 posts per page
+   paginator = Paginator(visuel_sentence_holder , 1)  # Show 1 posts per page
    page_number = request.GET.get('page')
    try:
       page_obj = paginator.get_page(page_number)
@@ -95,7 +95,7 @@ def toulmin(request):
     diagramlist = []
  
     sentence_holder = ToulminVisualization.objects.all()
-    paginator = Paginator(sentence_holder, 20)  # Show 5 posts per page
+    paginator = Paginator(sentence_holder, 1)  # Show 1 posts per page
     page_number = request.GET.get('page')
     try:
         page_obj = paginator.get_page(page_number)

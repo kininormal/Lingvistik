@@ -6,6 +6,7 @@ import graphviz
 import spacy
 from html import escape
 from graphviz import Digraph
+from .statsservices.directories import SENTENCEMARKERS
 from ... models import  LemmaSentence, ToulminVisualization
 
 from .statsservices.handle_useing_spacy import process_triplet
@@ -27,14 +28,78 @@ class Command(BaseCommand):
          #
          # hits is List[MarkerHit]
          hits = process_triplet(lemma_sentence_obj.findingID, prev_obj.previous_sentence, lemma_sentence_obj.lemma_sentence, fol_obj.following_sentence, lemma_sentence_obj.lemma)
-         
          print(f"length of hits: {len(hits)}")
-         for hit in hits:
-            #can I read a MarkerHit obj directly
-            print(f"Handle this to be visualized with the following setup")
-            print(f"For {hit.sentence_position} sentence there are word {hit.marker_text} with category  {hit.marker_category}")
-            
+         # for hit in hits:
+         #    #can I read a MarkerHit obj directly
+         #    print(f"Handle this to be visualized with the following setup")
+         #    print(f"For {hit.sentence_position} sentence there are word {hit.marker_text} with category  {hit.marker_category}")
          
+         #get all current categories of meaning modifiers 
+         
+      #NB NB co pilot        
+      #    filtered = [
+      #    hit for hit in hits
+      #    if hit.relation_state == wanted_relation_state
+      #    and hit.context_cat == wanted_context_cat
+      # ]
+         # filtering efter en 
+        # relation_hits = [hit for hit in hits if hit.relation_state == "parent"]
+         
+         
+                  
+         # SENTENCEMARKERS = {
+         #     "intensifier": {
+         #         "very", "really", "extremely", "highly", "deeply", "utterly",
+         #         "completely", "totally", "absolutely",
+         #     },
+         #     "downtoner": {
+         #         "rather", "fairly", "quite", "somewhat", "slightly", "barely",
+         #         "hardly", "almost",
+         #     },
+         #     "negation": {
+         #         "not", "never", "neither", "nor", "no",
+         #     },
+         #     "hedge": {
+         #         "perhaps", "probably", "possibly", "apparently", "seemingly", "maybe",
+         #     },
+         #     "reinforcer": {
+         #         "certainly", "clearly", "indeed", "undoubtedly", "surely", "definitely",
+         #     },
+         #     "concession": {
+         #         "but", "however", "although", "though", "yet", "nevertheless",
+         #         "nonetheless", "still",
+         #     },
+         # }
+             
+         prev_intensifier_str ='NONE'  
+         prev_downtoner_str = 'NONE'
+         prev_negation_str = 'NONE'
+         prev_hedge_str = 'NONE'
+         prev_reinforcer_str = "NONE"
+         prev_concession_str = 'NONE'
+         lemma_intensifier_str ='NONE'  
+         lemma_downtoner_str = 'NONE'
+         lemma_negation_str = 'NONE'
+         lemma_hedge_str = 'NONE'
+         lemma_reinforcer_str = "NONE"
+         lemma_concession_str = 'NONE'
+         follow_intensifier_str ='NONE'  
+         follow_downtoner_str = 'NONE'
+         follow_negation_str = 'NONE'
+         follow_hedge_str = 'NONE'
+         follow_reinforcer_str = "NONE"
+         follow_concession_str = 'NONE'
+         for hit in hits:
+            match  hit.sentence_position:
+               case 'previous':
+                  print(f"Relate to previous sentence")  
+               case 'lemma':
+                  print(f"Relate lemma sentence")  
+               case 'following':
+                  print(f"Relate to following sentence") 
+               case _:
+                  print(f"UNKNOWEN ") 
+
          graph = Digraph("toulmin_lemma")
          graph.attr(rankdir="TB", splines="polyline")
          

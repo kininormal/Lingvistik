@@ -310,6 +310,8 @@ def find_wordclass_lemma_relations(lemma_record, nlp_lang):
          
          
 #################### Toulmin argument model alike ###########################################################
+#def process_triplet is main function 
+
 
 # Extract "meaning modifier" markers (intensifier, downtoner, negation, hedge,
 # reinforcer, concession) relative to a target lemma, across a
