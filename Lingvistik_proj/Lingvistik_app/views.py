@@ -106,8 +106,8 @@ def toulmin(request):
     
     #.toulmin_svg can be handled further
     for sentence in page_obj.object_list:
-        sentence.toulmin_svg  = sentence.toulmin_svg 
-   
+        #sentence.toulmin_svg  =  prepare_svg(sentence.toulmin_svg) 
+      sentence.toulmin_svg  =  sentence.toulmin_svg
     context = {'page_obj': page_obj}
     
     return render(request, 'Lingvistik_app/toulmin.html', context)
