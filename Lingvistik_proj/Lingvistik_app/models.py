@@ -104,6 +104,24 @@ class VisualizationOfLemmaSentence(models.Model):
    sentence_and_context_svg = models.TextField() 
    related_findingID = models.CharField(max_length=500, db_index=True)
    
+class VisualizationOfPreviousSentence(models.Model):
+   class Meta:
+      ordering = ['related_findingID']
+   related_findingID = models.CharField(max_length=500, db_index=True)
+   
+   sentence_and_context_svg = models.TextField() 
+  
+   
+   
+class VisualizationOfFollowingSentence(models.Model):
+   class Meta:
+      ordering = ['related_findingID']
+   related_findingID = models.CharField(max_length=500, db_index=True)
+   
+   sentence_and_context_svg = models.TextField() 
+
+   
+   
    
 class ToulminVisualization(models.Model):
    class Meta:

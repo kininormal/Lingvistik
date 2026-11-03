@@ -133,36 +133,12 @@ def prepare_svg(svg: str) -> str:
     )
 
     return svg
-
-#Version 2:
-# def make_svg_responsive(svg: str) -> str:
-#     # Hent original width/height fra <svg>
-#     w = re.search(r'<svg[^>]*\swidth="(\d+)', svg).group(1)
-#     h = re.search(r'<svg[^>]*\sheight="([\d.]+)', svg).group(1)
-
-#     svg = re.sub(
-#         r'(<svg\b[^>]*?)\swidth="\d+"\s+height="[\d.]+"([^>]*)',
-#         rf'\1 viewBox="0 0 {w} {h}" width="{w}" height="{h}"\2',
-#         svg,
-#         count=1
-#     )
-
-#     return svg
-
-
-
-#Version 1:
-
-# def make_svg_responsive(svg: str) -> str:
-#      # grab the original dimensions from the <svg ...> tag
-#     w = re.search(r'<svg[^>]*\swidth="(\d+)', svg).group(1)
-#     h = re.search(r'<svg[^>]*\sheight="([\d.]+)', svg).group(1)
-
-#     # only touch the opening <svg ...> tag, not inner elements
-#     svg = re.sub(
-#         r'(<svg\b[^>]*)\swidth="\d+"\s+height="[\d.]+"([^>]*)',
-#         rf'\1 viewBox="0 0 {w} {h}" width="100%" height="auto"\2',
-#         svg, count=1
-#     )
-#     svg = svg.replace('style="max-width: none;', 'style="max-width: 100%;')
-#     return svg
+ 
+def clean_svg(svg_string):
+   match = re.search(r"<svg.*?</svg>",  svg_string, re.DOTALL)
+      
+   if match:
+      svg_string = match.group(0)
+   else:
+      print("Ingen SVG fundet i strengen.")
+   return svg_string

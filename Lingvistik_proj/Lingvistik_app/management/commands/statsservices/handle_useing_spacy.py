@@ -192,9 +192,6 @@ def use_spacy_for_text_processing(text, name_of_work, source, designation, body_
                   t.text for t in after_tokens
                   if t.dep_ == "obj"
                ]
-
-             
-               
             
             data.append([
                WORKID_SENTNR_LEMMANR,
@@ -264,7 +261,7 @@ def apply_object_values(sentence_obj,  nlp_lang):
 def record_lemmas(lemma_sentence_record_obj, nlp_lang):
    print("Entering record lemma")
    text =  lemma_sentence_record_obj.lemma_sentence
-   lemma =  lemma_sentence_record_obj. lemma
+   lemma =  lemma_sentence_record_obj.lemma
    
    print(f"in record lemmas the lemma is: { lemma} and sentance is {text}")
    # ----------------------------------
@@ -293,17 +290,32 @@ def record_lemmas(lemma_sentence_record_obj, nlp_lang):
 def find_wordclass_lemma_relations(lemma_record, nlp_lang):
    print(f"More than one lemma in sentence to analyse ")
    
-   lemmainfoobjs = handle_lemma_sentence(lemma_record)
-   print(f"For lemma sentence with id  {lemma_record.findingID} there are {len(lemmainfoobjs)} lemma info objects")
-   words_of_analytical_interest_infoobjs = handle_words_for_lemma_sentence(lemma_record)
-   # print(f"For lemma sentence with id  {lemma_record.findingID} there are {len(words_of_analytical_interest_infoobjs)} words of analytical intrest")
-   # for  words_of_analytical_interst in  words_of_analytical_interest_infoobjs:
-   #    print(f"word: { words_of_analytical_interst.word } with gramma {words_of_analytical_interst.gramma_class} is of interst")
+   #
+   # RECORD PART
+   #
+   #lemma record i my record of the lemma sentence (LemmaSentence model) 
+   # The LemmaSentence model relates to the Lemma model which contains the lemma and its position in the sentence. The LemmaSentence model also relates to the Word model which contains words of analytical interest and their grammatical class.
+    # The LemmaSentence model relates to the Word model which contains words of analytical interest and their grammatical class.
+   full_lemma_sentence = lemma_record.lemma_sentence
+
+   lemma_objs = handle_lemma_sentence(lemma_record)
+   # for lemma_info in lemma_objs:
+   #    print(f"Found lemma {lemma_info.lemma} at position {lemma_info.lemma_position} with pk {lemma_info.lemma_pk}")
    
-   #get words of analyticaly interest with gramma, position the word, the word it is adj, adver -.. to the position   from the "raw" lemma sentence using the access in lemma_record
-   sentenceinfoobjs = handle_lemma_sentence_content(lemma_record, words_of_analytical_interest_infoobjs, nlp_lang)
-   print(f"For the sentence with id {lemma_record.findingID} there are {len(sentenceinfoobjs)} sentence object to check for relationship")
-   gramma_relationship(lemma_record , sentenceinfoobjs)
+   word_objs = handle_words_for_lemma_sentence(lemma_record)
+   # print(f"For lemma sentence with id  {lemma_record.findingID} there are {len(word_objs)} words of analytical intrest. The words are")
+   # for  word_info in  word_objs:
+   #    print(f"word: { word_info.word } with gramma {word_info.gramma_class} is of interst and position {word_info.word_position}")
+   
+   #
+   # SENTENCE PART (to be "mached" with the lemma and word records)
+   #
+   
+   full_sentence_elements = handle_lemma_sentence_content(full_lemma_sentence, word_objs, nlp_lang)
+   for sentence_element in full_sentence_elements:
+      print(f"Sentence element: {sentence_element.word} at position {sentence_element.word_position} with gramma {sentence_element.gramma_class} is related to word {sentence_element.gramma_related_to_word} at position {sentence_element.gramma_related_to_word_at_pos}")
+   # print(f"For the sentence with id {lemma_record.findingID} there are {len(sentenceinfoobjs)} sentence object to check for relationship")
+   # gramma_relationship(lemma_record , sentenceinfoobjs)
 
          
          
@@ -494,25 +506,27 @@ def handle_words_for_lemma_sentence(lemma_record):
       
    return wordinfo
 
-def handle_lemma_sentence_content(lemma_record, info_of_words_objs, nlp_lang):
-   lemma_sentence_info: List[LemmaInLemmaSentence] = []
-   text = lemma_record.lemma_sentence
+def handle_lemma_sentence_content(full_lemma_sentence, info_of_words_objs, nlp_lang):
+   #INITIALIZE
+   text = full_lemma_sentence
+   nlp_lang.max_length = max(nlp_lang.max_length, len(text) + 1) # able to handle extreme long sentence
+   doc = nlp_lang(text)   
    print(f"Whole sentence to analyse in handle_lemma_sentence_content: {text} ")
-   #register used wordclasses  -> make a class to access used grammas #get  allowed_pos form words. Words are determined by relevant gramma set in build_view_models
+   #register words of analytical interest in sentence with gramma class and position in sentence
+   #only consider words of analytical interest in sentence
    allowed_pos = {}
    for info_of_word in info_of_words_objs:
       if info_of_word.gramma_class not in  allowed_pos:
        allowed_pos = info_of_word.gramma_class
       
+   lemma_sentence_info: List[LemmaInLemmaSentence] = []
    
-   
-   nlp_lang.max_length = max(nlp_lang.max_length, len(text) + 1) # able to handle extreme long sentence
-   doc = nlp_lang(text)       
+   #Process the sentence and register words of analytical interest with their gramma class and position in the sentence
    for token in doc: #doc is lemma sentence to analyse
       # Only consider whole words in lemma sentence, allow eg COVID-19 to be word
       if token.is_punct or token.is_space:  
          continue
-      # #Only consider words of analytically interes
+      # Only consider words of analytically interested
       if token.pos_ not in  allowed_pos:  
          continue 
        

@@ -3,7 +3,7 @@ from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 import spacy
 from spacy import displacy
 from . models import ParsedSentence, VisualizationOfLemmaSentence, ToulminVisualization
-from .management.commands.statsservices.handle_svg import prepare_svg
+from .management.commands.statsservices.handle_svg import prepare_svg, clean_svg
 
 
 # Indlæs modellen én gang (globalt i filen for bedre ydeevne)
@@ -106,8 +106,7 @@ def toulmin(request):
     
     #.toulmin_svg can be handled further
     for sentence in page_obj.object_list:
-        #sentence.toulmin_svg  =  prepare_svg(sentence.toulmin_svg) 
-      sentence.toulmin_svg  =  sentence.toulmin_svg
+      sentence.toulmin_svg  =  clean_svg(sentence.toulmin_svg)
     context = {'page_obj': page_obj}
     
     return render(request, 'Lingvistik_app/toulmin.html', context)
