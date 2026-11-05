@@ -288,35 +288,25 @@ def record_lemmas(lemma_sentence_record_obj, nlp_lang):
                                              )
 
 def find_wordclass_lemma_relations(lemma_record, nlp_lang):
-   print(f"More than one lemma in sentence to analyse ")
-   
    #
    # RECORD PART
    #
-   #lemma record i my record of the lemma sentence (LemmaSentence model) 
-   # The LemmaSentence model relates to the Lemma model which contains the lemma and its position in the sentence. The LemmaSentence model also relates to the Word model which contains words of analytical interest and their grammatical class.
-    # The LemmaSentence model relates to the Word model which contains words of analytical interest and their grammatical class.
    full_lemma_sentence = lemma_record.lemma_sentence
-
    lemma_objs = handle_lemma_sentence(lemma_record)
-   # for lemma_info in lemma_objs:
-   #    print(f"Found lemma {lemma_info.lemma} at position {lemma_info.lemma_position} with pk {lemma_info.lemma_pk}")
-   
    word_objs = handle_words_for_lemma_sentence(lemma_record)
-   # print(f"For lemma sentence with id  {lemma_record.findingID} there are {len(word_objs)} words of analytical intrest. The words are")
-   # for  word_info in  word_objs:
-   #    print(f"word: { word_info.word } with gramma {word_info.gramma_class} is of interst and position {word_info.word_position}")
-   
    #
-   # SENTENCE PART (to be "mached" with the lemma and word records)
+   # sentence part
    #
+   full_sentence_elements = handle_lemma_sentence_content(full_lemma_sentence, word_objs, lemma_record.lemma,  nlp_lang)
+   #
+   # Relate
+   #
+   direct_related, nearest_neighbour  = find_full_sentence_relationship(full_sentence_elements, lemma_objs)
    
-   full_sentence_elements = handle_lemma_sentence_content(full_lemma_sentence, word_objs, nlp_lang)
-   for sentence_element in full_sentence_elements:
-      print(f"Sentence element: {sentence_element.word} at position {sentence_element.word_position} with gramma {sentence_element.gramma_class} is related to word {sentence_element.gramma_related_to_word} at position {sentence_element.gramma_related_to_word_at_pos}")
-   # print(f"For the sentence with id {lemma_record.findingID} there are {len(sentenceinfoobjs)} sentence object to check for relationship")
-   # gramma_relationship(lemma_record , sentenceinfoobjs)
-
+   return  direct_related, nearest_neighbour
+   
+   
+   
          
          
          
@@ -506,12 +496,12 @@ def handle_words_for_lemma_sentence(lemma_record):
       
    return wordinfo
 
-def handle_lemma_sentence_content(full_lemma_sentence, info_of_words_objs, nlp_lang):
+def handle_lemma_sentence_content(full_lemma_sentence, info_of_words_objs, lemma_word ,nlp_lang):
    #INITIALIZE
    text = full_lemma_sentence
    nlp_lang.max_length = max(nlp_lang.max_length, len(text) + 1) # able to handle extreme long sentence
    doc = nlp_lang(text)   
-   print(f"Whole sentence to analyse in handle_lemma_sentence_content: {text} ")
+   has_direct_relation = False
    #register words of analytical interest in sentence with gramma class and position in sentence
    #only consider words of analytical interest in sentence
    allowed_pos = {}
@@ -519,7 +509,8 @@ def handle_lemma_sentence_content(full_lemma_sentence, info_of_words_objs, nlp_l
       if info_of_word.gramma_class not in  allowed_pos:
        allowed_pos = info_of_word.gramma_class
       
-   lemma_sentence_info: List[LemmaInLemmaSentence] = []
+   lemma_sentence_info: List[LemmaSentenceWords] = []
+   
    
    #Process the sentence and register words of analytical interest with their gramma class and position in the sentence
    for token in doc: #doc is lemma sentence to analyse
@@ -529,7 +520,11 @@ def handle_lemma_sentence_content(full_lemma_sentence, info_of_words_objs, nlp_l
       # Only consider words of analytically interested
       if token.pos_ not in  allowed_pos:  
          continue 
-       
+      if token.head == lemma_word.lower(): 
+         has_direct_relation = True
+      else:
+         has_direct_relation = False
+      
       # print(f"CHECK WHOLE WORDS Token word to check  {token.text} with pos {token.i} and gramma {token.pos_}"  )
       lemma_sentence_info.append(LemmaSentenceWords(
                                                     word = token.text,
@@ -537,29 +532,68 @@ def handle_lemma_sentence_content(full_lemma_sentence, info_of_words_objs, nlp_l
                                                     gramma_class =  token.pos_,
                                                     gramma_related_to_word =  token.head,
                                                     gramma_related_to_word_at_pos = token.head.i,
+                                                    is_direct_relatede = has_direct_relation,
       ))
+
 
    return lemma_sentence_info
       
-def gramma_relationship(lemma_rec, lst_of_lemmasentenceWords_objs):
-   
-   #missing lemma-position
-    #missing lemma-pk
-   #direct relation 
-   for lemmasentenceWord in lst_of_lemmasentenceWords_objs:
-      if  lemmasentenceWord.gramma_related_to_word == lemma_rec.lemma:
-         lemmasentenceWord.is_direct_relatede = True
+      
+def find_full_sentence_relationship(full_sentence_elements, lemma_objs):
+   #missing lemma positions to 
+   #FILTERING???  FILTER
+   #more than one cæluster clustres = len(lemma_objs) contaning position  Relate full_sentence_element position  to lemma_obj wyht lowst sist lemmaposition
+   direct_record: List[LemmaAndRelatedWords] = []
+   nearest_record: List[LemmaAndRelatedWords] = []
+
+   for full_sentence_element in full_sentence_elements:
+      
+      # 1. Håndter direkte relationer
+      if getattr(full_sentence_element, 'is_direct_relatede', False):
+         found = False
+         for lemma_obj in lemma_objs:
+               if lemma_obj.lemma_position == full_sentence_element.gramma_related_to_word_at_pos:
+                  direct_record.append(LemmaAndRelatedWords(lemmainf=lemma_obj, wordsinf=full_sentence_element))
+                  found = True
+                  break  
+      # 2. Håndter nærmeste nabo (hvis ikke direkte)
       else:
-         lemmasentenceWord.is_direct_relatede = False
-   #nearest to 
-   for lemmasentenceWord in lst_of_lemmasentenceWords_objs: 
-      word_pos_in_sentence = lemmasentenceWord.word_position   
-      dist = 1000000        
-      gramma_class_in_sentence = lemmasentenceWord.gramma_class  
-      for lemma in lemma_rec.analysis_focus.all(): # all lemmas for lemma sentence
-         if abs(lemma.lemma_position - word_pos_in_sentence) < dist:
-            dist = abs(lemma.lemma_position - word_pos_in_sentence)
-      print(f"The min dist between {lemmasentenceWord.word } grammaclass {gramma_class_in_sentence} and a lemma is {dist} ")
+         min_dist = float('inf')
+         nearest_lemma = None
+         
+         # Gennemgå alle lemmaer for at finde det tætteste på dette element
+         for lemma_obj in lemma_objs:
+               current_dist = abs(lemma_obj.lemma_position - full_sentence_element.word_position)
+               
+               if current_dist < min_dist:
+                  min_dist = current_dist
+                  nearest_lemma = lemma_obj
+         
+         # Tilføj det fundne nærmeste lemma til listen
+         if nearest_lemma is not None:
+            nearest_record.append(LemmaAndRelatedWords(lemmainf=nearest_lemma, wordsinf=full_sentence_element))
+
+   return direct_record, nearest_record
+   
+# def gramma_relationship(lemma_rec, lst_of_lemmasentenceWords_objs):
+   
+#    #missing lemma-position
+#     #missing lemma-pk
+#    #direct relation 
+#    for lemmasentenceWord in lst_of_lemmasentenceWords_objs:
+#       if  lemmasentenceWord.gramma_related_to_word == lemma_rec.lemma:
+#          lemmasentenceWord.is_direct_relatede = True
+#       else:
+#          lemmasentenceWord.is_direct_relatede = False
+#    #nearest to 
+#    for lemmasentenceWord in lst_of_lemmasentenceWords_objs: 
+#       word_pos_in_sentence = lemmasentenceWord.word_position   
+#       dist = 1000000        
+#       gramma_class_in_sentence = lemmasentenceWord.gramma_class  
+#       for lemma in lemma_rec.analysis_focus.all(): # all lemmas for lemma sentence
+#          if abs(lemma.lemma_position - word_pos_in_sentence) < dist:
+#             dist = abs(lemma.lemma_position - word_pos_in_sentence)
+#       print(f"The min dist between {lemmasentenceWord.word } grammaclass {gramma_class_in_sentence} and a lemma is {dist} ")
    
    
 @dataclass
@@ -583,7 +617,10 @@ class LemmaSentenceWords:
    gramma_related_to_word: str 
    gramma_related_to_word_at_pos: int
    is_direct_relatede: bool = False
-   is_nearest: bool = False
+   #is_nearest: bool = False
   
 
-         
+@dataclass
+class LemmaAndRelatedWords:
+   lemmainf: LemmaInLemmaSentence   
+   wordsinf:  LemmaSentenceWords  
