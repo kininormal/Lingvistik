@@ -48,7 +48,7 @@ class Command(BaseCommand):
          #print(f"Sentens ID {sentence_for_visualization_ID } with lemma {sentence_lemma} and {len(lemma_sentence_lemma_records )} records of lemmas" )
          visualize_previous_sentence(prev_obj,  lemma_sentence, lemma_sentence_records)
          visualize_lemma_sentence(lemma_sentence_lemma_records, lemma_sentence)
-         # visualize_following_sentence(fol_obj,  lemma_sentence, lemma_sentence_records)
+         visualize_following_sentence(fol_obj,  lemma_sentence, lemma_sentence_records)
          
       visualization_records = VisualizationOfLemmaSentence.objects.all()
       print(f"There are {len(visualization_records )} records with  visualization of lemmas after visualize_sentence_lemmas" )
@@ -111,42 +111,43 @@ def visualize_previous_sentence(prev_obj, related_lemma_sentence, lemma_sentence
    g.attr(bgcolor='purple', label='Previous Sentence and related words in selected grammar classes', fontcolor='white')
    
   
-   # if (has_lemmas_for_previous == True) and (has_more_than_one_lemma == False):
+   if (has_lemmas_for_previous == True) and (has_more_than_one_lemma == False):
+      name = 'F'
+   #only ome lemma in  lemmas_for_previous at index 0  
+      with g.subgraph(name='cluster_description') as c:
+               c.attr(
+                  fillcolor='blue',
+                  label='Lemma decription',
+                  fontcolor='white',
+                  style='filled'
+               )
       
-   #    with g.subgraph(name='cluster_description') as c:
-   #             c.attr(
-   #                fillcolor='blue',
-   #                label='Lemma decription',
-   #                fontcolor='white',
-   #                style='filled'
-   #             )
+               label = f'''<
+               <TABLE BORDER="1" CELLBORDER="0" CELLSPACING="0"
+                     CELLPADDING="6" BGCOLOR="white">
+                  <TR>
+                        <TD ALIGN="LEFT"><B>Lemma:</B></TD>
+                        <TD ALIGN="LEFT"><I>{escape(str( lemmas_for_previous[0].lemma ))}</I></TD>
+                  </TR>
+                  <TR>
+                     <TD ALIGN="LEFT"><B>Position</B></TD>
+                     <TD ALIGN="LEFT"><I>{escape(str(lemmas_for_previous[0].lemma_position))}</I></TD>
+               </TR>
+                  <TR>
+                        <TD ALIGN="LEFT"><B></B></TD>
+                        <TD ALIGN="LEFT"></TD>
+                  </TR>
+               </TABLE>
+               >'''
+               lemma_node_name = f'record_{name}'
       
-   #             label = f'''<
-   #             <TABLE BORDER="1" CELLBORDER="0" CELLSPACING="0"
-   #                   CELLPADDING="6" BGCOLOR="white">
-   #                <TR>
-   #                      <TD ALIGN="LEFT"><B>Lemma:</B></TD>
-   #                      <TD ALIGN="LEFT"><I>{escape(str(lemmas_for_previous.lemma ))}</I></TD>
-   #                </TR>
-   #                <TR>
-   #                   <TD ALIGN="LEFT"><B>Position</B></TD>
-   #                   <TD ALIGN="LEFT"><I>{escape(str(lemmas_for_previous.lemma_position))}</I></TD>
-   #             </TR>
-   #                <TR>
-   #                      <TD ALIGN="LEFT"><B></B></TD>
-   #                      <TD ALIGN="LEFT"></TD>
-   #                </TR>
-   #             </TABLE>
-   #             >'''
-   #             lemma_node_name = f'record_{name}'
-      
-   #             c.node(
-   #             lemma_node_name,
-   #             label=label,
-   #             shape='plain',
-   #             fontname='Arial',
-   #             fontsize='12'
-   #          )   
+               c.node(
+               lemma_node_name,
+               label=label,
+               shape='plain',
+               fontname='Arial',
+               fontsize='12'
+            )   
       
    if  has_more_than_one_lemma == True:
       #More ttan one Lemma must be relatst BUT MUST OLSO BE MORE as more tahn one  lemma sentence
@@ -155,6 +156,7 @@ def visualize_previous_sentence(prev_obj, related_lemma_sentence, lemma_sentence
       
    
    if has_words_for_previous == False:
+      name = 'G'
       with g.subgraph(name='cluster_description') as c:
          c.attr(
             fillcolor='blue',
@@ -190,8 +192,7 @@ def visualize_previous_sentence(prev_obj, related_lemma_sentence, lemma_sentence
          fontsize='12'
       )   
 
-   
-   
+
    if has_words_for_previous == True:
      for index, word_prev in enumerate(words_for_previous):
         name = number_to_letter(index + 1)
@@ -250,10 +251,8 @@ def visualize_lemma_sentence(lemma_objects_lemma_records, lemma_record):
    for index, rec in enumerate(records):
       name = number_to_letter(index + 1)
 
-
       g.attr(bgcolor='purple', label='Lemma and relatede words in selected gramma classes', fontcolor='white')
       
-
       with g.subgraph(name='cluster_description') as c:
          c.attr(
             fillcolor='blue',
@@ -355,12 +354,6 @@ def visualize_lemma_sentence(lemma_objects_lemma_records, lemma_record):
       # class LemmaInLemmaSentence : lemma: str  lemma_position: int  lemma_pk: str  
       direct_objs, nearest_objs  = find_wordclass_lemma_relations(lemma_record, nlp_en)
       print(f"There are {len(direct_objs)} direct related to lemmas and {len( nearest_objs)} related to nearest  ")
-      
-     
-
-
-
-
 
    svg_string_graphviz = g.pipe(format="svg", encoding="utf-8")
    VisualizationOfLemmaSentence.objects.create(sentence_and_context_svg = svg_string_graphviz,
@@ -368,105 +361,84 @@ def visualize_lemma_sentence(lemma_objects_lemma_records, lemma_record):
    
    
 def visualize_following_sentence(fol_obj, related_lemma_sentence, lemma_sentence_records):
-   #initialize
-   has_more_than_one_lemma = False
-   lemmas_for_following = fol_obj.following.all()  # lemma(s) for following sentence if any 0 to many
+  # in prev_obj only sentence for prev_obj can be accessed 
+     sentence_to_check   = fol_obj.following_sentence
+     
+     lemmas_for_follow = fol_obj.following.all()  # lemma(s) for previous sentence if any 0 to many
+     
+     words_for_follow = fol_obj.words_following.all()  # words for previous sentence if any 0 to many
+     
+     print(f"FOR previous ther are {len(lemmas_for_follow)} lemmas and {len(words_for_follow)} words in the record")
+     
    
-   words_for_following = fol_obj.words_following.all()  # words for following sentence if any 0 to many
-   #lemmas
-   has_lemmas_for_following = True if len(lemmas_for_following) > 0 else False
-   has_more_than_one_lemma = True if len(lemmas_for_following) > 1 else False
-   #words
-   has_words_for_following = True if len(words_for_following) > 0 else False
-
-   g = Digraph('G')
-   g.attr(bgcolor='purple', label='Following Sentence and related words in selected grammar classes', fontcolor='white')
-   
-   
-   # if (has_lemmas_for_following == True) and (has_more_than_one_lemma == False):
-      
-   #    with g.subgraph(name='cluster_description') as c:
-   #             c.attr(
-   #                fillcolor='blue',
-   #                label='Lemma decription',
-   #                fontcolor='white',
-   #                style='filled'
-   #             )
-      
-   #             label = f'''<
-   #             <TABLE BORDER="1" CELLBORDER="0" CELLSPACING="0"
-   #                   CELLPADDING="6" BGCOLOR="white">
-   #                <TR>
-   #                      <TD ALIGN="LEFT"><B>Lemma:</B></TD>
-   #                      <TD ALIGN="LEFT"><I>{escape(str(lemmas_for_following.lemma ))}</I></TD>
-   #                </TR>
-   #                <TR>
-   #                   <TD ALIGN="LEFT"><B>Position</B></TD>
-   #                   <TD ALIGN="LEFT"><I>{escape(str(lemmas_for_following.lemma_position))}</I></TD>
-   #             </TR>
-   #                <TR>
-   #                      <TD ALIGN="LEFT"><B></B></TD>
-   #                      <TD ALIGN="LEFT"></TD>
-   #                </TR>
-   #             </TABLE>
-   #             >'''
-   #             lemma_node_name = f'record_{name}'
-      
-   #             c.node(
-   #             lemma_node_name,
-   #             label=label,
-   #             shape='plain',
-   #             fontname='Arial',
-   #             fontsize='12'
-   #          )   
-      
-   # if  has_more_than_one_lemma == True:
-   #     #More ttan one Lemma must be relatst BUT MUST OLSO BE MORE as more tahn one  lemma sentence
-   #    #direct_objs, nearest_objs  = find_wordclass_lemma_relations(lemma_record, nlp_en)
-   #    pass
-      
-   
-   # if has_words_for_following == False:
-   #    with g.subgraph(name='cluster_description') as c:
-   #       c.attr(
-   #          fillcolor='blue',
-   #          label='Lemma decription',
-   #          fontcolor='white',
-   #          style='filled'
-   #       )
-
-   #       label = f'''<
-   #       <TABLE BORDER="1" CELLBORDER="0" CELLSPACING="0"
-   #             CELLPADDING="6" BGCOLOR="white">
-   #          <TR>
-   #                <TD ALIGN="LEFT"><B>Word:</B></TD>
-   #                <TD ALIGN="LEFT"><I>NO WORDS FOUND</I></TD>
-   #          </TR>
-   #          <TR>
-   #             <TD ALIGN="LEFT"><B>Word:</B></TD>
-   #             <TD ALIGN="LEFT"><I>NO WORDS FOUND</I></TD>
-   #       </TR>
-   #          <TR>
-   #                <TD ALIGN="LEFT"><B>Position:</B></TD>
-   #                <TD ALIGN="LEFT">NO WORDS FOUND</TD>
-   #          </TR>
-   #       </TABLE>
-   #       >'''
-   #       lemma_node_name = f'record_{name}'
-
-   #       c.node(
-   #       lemma_node_name,
-   #       label=label,
-   #       shape='plain',
-   #       fontname='Arial',
-   #       fontsize='12'
-   #    )   
-
-   
-   
-   if has_words_for_following == True:
-     for index, word_fol in enumerate(words_for_following):
-        name = number_to_letter(index + 1)
+     
+     #check taht contet is aa expeted 
+     
+     ####Word with gramma X i the record  FIGURE OUT WHY
+     for word_follow in words_for_follow:
+        print(f"For word {word_follow.word} with gramma {word_follow.wordclass} the position is {word_follow.position}  ") 
+        
+     for lemma__follow in lemmas_for_follow:
+        print(f"lemma {lemma__follow.lemma} in previous at position {lemma__follow.lemma_position}  ") 
+    
+    
+     #WHY is something going wrong with lemma__previous.lemma  and word_previous.word
+     #lemmas
+     has_lemmas_for_follow = True if len(lemmas_for_follow) > 0 else False
+     has_more_than_one_lemma = True if len(lemmas_for_follow) > 1 else False
+     #words
+     has_words_for_follow = True if len(words_for_follow) > 0 else False
+  
+     g = Digraph('G')
+     g.attr(bgcolor='purple', label='Previous Sentence and related words in selected grammar classes', fontcolor='white')
+     
+    
+     if (has_lemmas_for_follow == True) and (has_more_than_one_lemma == False):
+        name = 'F'
+     #only ome lemma in  lemmas_for_previous at index 0  
+        with g.subgraph(name='cluster_description') as c:
+                 c.attr(
+                    fillcolor='blue',
+                    label='Lemma decription',
+                    fontcolor='white',
+                    style='filled'
+                 )
+        
+                 label = f'''<
+                 <TABLE BORDER="1" CELLBORDER="0" CELLSPACING="0"
+                       CELLPADDING="6" BGCOLOR="white">
+                    <TR>
+                          <TD ALIGN="LEFT"><B>Lemma:</B></TD>
+                          <TD ALIGN="LEFT"><I>{escape(str( lemmas_for_follow[0].lemma ))}</I></TD>
+                    </TR>
+                    <TR>
+                       <TD ALIGN="LEFT"><B>Position</B></TD>
+                       <TD ALIGN="LEFT"><I>{escape(str(lemmas_for_follow[0].lemma_position))}</I></TD>
+                 </TR>
+                    <TR>
+                          <TD ALIGN="LEFT"><B></B></TD>
+                          <TD ALIGN="LEFT"></TD>
+                    </TR>
+                 </TABLE>
+                 >'''
+                 lemma_node_name = f'record_{name}'
+        
+                 c.node(
+                 lemma_node_name,
+                 label=label,
+                 shape='plain',
+                 fontname='Arial',
+                 fontsize='12'
+              )   
+        
+     if  has_more_than_one_lemma == True:
+        #More ttan one Lemma must be relatst BUT MUST OLSO BE MORE as more tahn one  lemma sentence
+        #direct_objs, nearest_objs  = find_wordclass_lemma_relations(lemma_record, nlp_en)
+        pass
+        
+     
+     if has_words_for_follow == False:
+        name = 'G'
         with g.subgraph(name='cluster_description') as c:
            c.attr(
               fillcolor='blue',
@@ -480,15 +452,15 @@ def visualize_following_sentence(fol_obj, related_lemma_sentence, lemma_sentence
                  CELLPADDING="6" BGCOLOR="white">
               <TR>
                     <TD ALIGN="LEFT"><B>Word:</B></TD>
-                    <TD ALIGN="LEFT"><I>{escape(str(word_fol.word))}</I></TD>
+                    <TD ALIGN="LEFT"><I>NO WORDS FOUND</I></TD>
               </TR>
               <TR>
-                  <TD ALIGN="LEFT"><B>Word:</B></TD>
-                  <TD ALIGN="LEFT"><I>{escape(str(word_fol.wordclass))}</I></TD>
-            </TR>
+                 <TD ALIGN="LEFT"><B>Word:</B></TD>
+                 <TD ALIGN="LEFT"><I>NO WORDS FOUND</I></TD>
+           </TR>
               <TR>
                     <TD ALIGN="LEFT"><B>Position:</B></TD>
-                    <TD ALIGN="LEFT">{escape(str(word_fol.position))}</TD>
+                    <TD ALIGN="LEFT">NO WORDS FOUND</TD>
               </TR>
            </TABLE>
            >'''
@@ -500,8 +472,49 @@ def visualize_following_sentence(fol_obj, related_lemma_sentence, lemma_sentence
            shape='plain',
            fontname='Arial',
            fontsize='12'
-      )   
+        )   
+  
+  
+     if has_words_for_follow == True:
+       for index, word_fol in enumerate(words_for_follow):
+          name = number_to_letter(index + 1)
+          with g.subgraph(name='cluster_description') as c:
+             c.attr(
+                fillcolor='blue',
+                label='Lemma decription',
+                fontcolor='white',
+                style='filled'
+             )
+    
+             label = f'''<
+             <TABLE BORDER="1" CELLBORDER="0" CELLSPACING="0"
+                   CELLPADDING="6" BGCOLOR="white">
+                <TR>
+                      <TD ALIGN="LEFT"><B>Word:</B></TD>
+                      <TD ALIGN="LEFT"><I>{escape(str(word_fol.word))}</I></TD>
+                </TR>
+                <TR>
+                    <TD ALIGN="LEFT"><B>Word:</B></TD>
+                    <TD ALIGN="LEFT"><I>{escape(str(word_fol.wordclass))}</I></TD>
+              </TR>
+                <TR>
+                      <TD ALIGN="LEFT"><B>Position:</B></TD>
+                      <TD ALIGN="LEFT">{escape(str(word_fol.position))}</TD>
+                </TR>
+             </TABLE>
+             >'''
+             lemma_node_name = f'record_{name}'
+    
+             c.node(
+             lemma_node_name,
+             label=label,
+             shape='plain',
+             fontname='Arial',
+             fontsize='12'
+        )   
            
-   svg_string_graphviz = g.pipe(format="svg", encoding="utf-8")
-   VisualizationOfFollowingSentence.objects.create(sentence_and_context_svg=svg_string_graphviz,
-                                                    related_findingID =  related_lemma_sentence.findingID)
+ 
+     svg_string_graphviz = g.pipe(format="svg", encoding="utf-8")
+     VisualizationOfFollowingSentence.objects.create(sentence_and_context_svg=svg_string_graphviz,
+                                                   related_findingID = related_lemma_sentence.findingID) 
+   

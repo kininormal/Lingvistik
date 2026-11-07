@@ -25,6 +25,11 @@ class Command(BaseCommand):
       print("Number of Sentence to build models for views: ", len(sentence_context_objects ) )
       #TEST FASE - START BY empty records for views and templates
       LemmaSentence.objects.all().delete()
+      Word.objects.all().delete() # build from  LemmaSentence Currently X apperes as gramma  - shoud not be possible X suld be ignored  Check implementaion latess update
+      Lemma.objects.all().delete() # build from  LemmaSentence
+      
+      
+      
       #check
       records = LemmaSentence.objects.all()
       print("TEST FASE Number of lemma sentence records from works are  initilized to: ", len(records) )
